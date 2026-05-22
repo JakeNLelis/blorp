@@ -4,6 +4,9 @@ import { SiteFooter } from "@/components/site-footer";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "./add-to-cart-button";
+import { Tables } from "@/types/supabase";
+
+type ProductWithCategory = Tables<"products"> & { categories: { name: string } | { name: string }[] | null };
 
 export default async function ProductDetailPage({
   params,
@@ -13,11 +16,17 @@ export default async function ProductDetailPage({
   const supabase = await createClient();
   const id = (await params).id;
 
-  const { data: product } = await supabase
+  const { data, error } = await supabase
     .from("products")
     .select("*, categories(name)")
     .eq("id", id)
     .single();
+
+  if (error) {
+    throw error;
+  }
+
+  const product = data as unknown as ProductWithCategory;
 
   if (!product) {
     notFound();
@@ -26,7 +35,7 @@ export default async function ProductDetailPage({
   // Handle the nested structure of Supabase joins
   const categoryName = Array.isArray(product.categories)
     ? product.categories[0]?.name
-    : (product.categories as any)?.name;
+    : product.categories?.name;
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
@@ -71,7 +80,7 @@ export default async function ProductDetailPage({
               </div>
 
               <div className="pt-6 border-t">
-                <AddToCartButton product={product as any} />
+                <AddToCartButton product={product as Tables<"products">} />
               </div>
 
               <div className="text-sm text-muted-foreground space-y-2">

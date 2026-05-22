@@ -32,9 +32,9 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { CartSheet } from "./cart-sheet";
+import { signOut } from "@/app/login/actions";
 
 const mainLinks = [
   { label: "Skin Quiz", href: "#" },
@@ -45,7 +45,6 @@ const mainLinks = [
 
 export function SiteHeader() {
   const [user, setUser] = React.useState<SupabaseUser | null>(null);
-  const router = useRouter();
 
   React.useEffect(() => {
     const supabase = createClient();
@@ -82,9 +81,7 @@ export function SiteHeader() {
   };
 
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.refresh();
+    await signOut();
   };
 
   return (

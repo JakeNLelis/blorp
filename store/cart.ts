@@ -22,6 +22,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (product, quantity = 1) => {
+        const sanitizedQuantity = Math.max(1, Math.floor(Number.isFinite(quantity) ? quantity : 1));
         set((state) => {
           const existingItem = state.items.find((item) => item.product.id === product.id);
 
@@ -29,13 +30,13 @@ export const useCartStore = create<CartState>()(
             return {
               items: state.items.map((item) =>
                 item.product.id === product.id
-                  ? { ...item, quantity: item.quantity + quantity }
+                  ? { ...item, quantity: item.quantity + sanitizedQuantity }
                   : item
               ),
             };
           }
 
-          return { items: [...state.items, { product, quantity }] };
+          return { items: [...state.items, { product, quantity: sanitizedQuantity }] };
         });
       },
       removeItem: (productId) => {
@@ -44,9 +45,10 @@ export const useCartStore = create<CartState>()(
         }));
       },
       updateQuantity: (productId, quantity) => {
+        const sanitizedQuantity = Math.max(1, Math.floor(Number.isFinite(quantity) ? quantity : 1));
         set((state) => ({
           items: state.items.map((item) =>
-            item.product.id === productId ? { ...item, quantity } : item
+            item.product.id === productId ? { ...item, quantity: sanitizedQuantity } : item
           ),
         }));
       },
