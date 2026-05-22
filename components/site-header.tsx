@@ -8,12 +8,12 @@ import {
   Heart,
   User,
   Search,
-  ShoppingCart,
   Menu,
   LayoutGrid,
   ChevronDown,
   Sun,
   Moon,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -32,6 +31,10 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Image from "next/image";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { CartSheet } from "./cart-sheet";
 
 const mainLinks = [
   { label: "Skin Quiz", href: "#" },
@@ -41,6 +44,24 @@ const mainLinks = [
 ];
 
 export function SiteHeader() {
+  const [user, setUser] = React.useState<SupabaseUser | null>(null);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   React.useEffect(() => {
     const storedTheme = window.localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
@@ -60,14 +81,20 @@ export function SiteHeader() {
     window.localStorage.setItem("theme", nextTheme);
   };
 
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.refresh();
+  };
+
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div className="flex h-[var(--primary-nav-height)] items-center gap-3 bg-primary px-6 py-4 text-primary-foreground">
         <Link
-          href="https://shadcnblocks.com"
+          href="/"
           className="flex max-h-8 shrink-0 items-center gap-2 p-2"
         >
-          <Image alt="Shadcnblocks.com" className="block size-8" src={logo} />
+          <Image alt="Blorp Atelier" className="block size-8" src={logo} />
           <span className="hidden text-lg font-medium tracking-tighter text-primary-foreground md:flex">
             Blorp Atelier
           </span>
@@ -98,13 +125,39 @@ export function SiteHeader() {
               <Heart className="size-4" />
               Wishlist
             </Button>
-            <Button
-              variant="ghost"
-              className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-            >
-              <User className="size-4" />
-              Account
-            </Button>
+            {user ? (
+               <DropdownMenu>
+               <DropdownMenuTrigger asChild>
+                 <Button
+                   variant="ghost"
+                   className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground data-[state=open]:bg-primary-foreground/10 data-[state=open]:text-primary-foreground"
+                 >
+                   <User className="size-4" />
+                   {user.email}
+                   <ChevronDown className="size-4" />
+                 </Button>
+               </DropdownMenuTrigger>
+               <DropdownMenuContent align="end">
+                 <DropdownMenuItem>My Account</DropdownMenuItem>
+                 <DropdownMenuItem>My Orders</DropdownMenuItem>
+                 <DropdownMenuItem onClick={handleSignOut} className="text-red-500">
+                    <LogOut className="size-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+               </DropdownMenuContent>
+             </DropdownMenu>
+            ) : (
+              <Button
+                variant="ghost"
+                className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                asChild
+              >
+                <Link href="/login">
+                  <User className="size-4" />
+                  Account
+                </Link>
+              </Button>
+            )}
           </div>
           <Button
             variant="ghost"
@@ -123,18 +176,9 @@ export function SiteHeader() {
             <Sun className="size-4 dark:hidden" />
             <Moon className="hidden size-4 dark:block" />
           </Button>
-          <div className="relative size-fit">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-            >
-              <ShoppingCart className="size-4" />
-            </Button>
-            <Badge className="absolute right-0 top-0 h-5 translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500 px-2 py-0.5 text-[0.625rem] font-medium text-foreground">
-              0
-            </Badge>
-          </div>
+
+          <CartSheet />
+
           <div className="contents lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -157,10 +201,19 @@ export function SiteHeader() {
                       <Heart className="size-4" />
                       Wishlist
                     </Button>
-                    <Button variant="ghost" className="justify-start">
-                      <User className="size-4" />
-                      Account
-                    </Button>
+                    {user ? (
+                      <Button variant="ghost" className="justify-start text-red-500" onClick={handleSignOut}>
+                        <LogOut className="size-4 mr-2" />
+                        Sign out
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" className="justify-start" asChild>
+                        <Link href="/login">
+                          <User className="size-4 mr-2" />
+                          Account
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </SheetContent>
@@ -174,9 +227,11 @@ export function SiteHeader() {
             <NavigationMenu className="relative flex max-w-max flex-1 items-center justify-start">
               <NavigationMenuList className="flex flex-1 items-center justify-center gap-3.5">
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="px-4">
-                    Shop
-                  </NavigationMenuTrigger>
+                  <Link href="/products" legacyBehavior passHref>
+                    <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+                      Shop All
+                    </NavigationMenuLink>
+                  </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="px-4">
