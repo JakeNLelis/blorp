@@ -24,7 +24,7 @@ export function AddToCartButton({ product }: { product: Tables<"products"> }) {
   };
 
   return (
-    <Button size="lg" className="w-full h-14 text-lg rounded-full" onClick={handleAddToCart}>
+    <Button size="lg" className="w-full h-14 text-lg rounded-md" onClick={handleAddToCart}>
       <ShoppingCart className="mr-2 h-5 w-5" />
       Add to Cart
     </Button>

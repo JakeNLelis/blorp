@@ -82,15 +82,15 @@ export function CartSheet() {
             <ShoppingCart className="size-4" aria-hidden="true" />
           </Button>
           {totalItems() > 0 && (
-            <Badge className="absolute right-0 top-0 h-5 translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500 px-2 py-0.5 text-[0.625rem] font-medium text-foreground">
+            <Badge className="absolute right-0 top-0 h-5 translate-x-1/2 -translate-y-1/2 rounded-none bg-amber-500 px-2 py-0.5 text-[0.625rem] font-medium text-foreground">
               {totalItems()}
             </Badge>
           )}
         </div>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col sm:max-w-lg">
+      <SheetContent className="flex w-full flex-col sm:max-w-lg font-sans">
         <SheetHeader className="px-1">
-          <SheetTitle>Your Cart ({totalItems()})</SheetTitle>
+          <SheetTitle className="font-heading">Your Cart ({totalItems()})</SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
@@ -98,7 +98,7 @@ export function CartSheet() {
             <ShoppingCart className="h-12 w-12 text-muted-foreground" />
             <p className="text-lg font-medium text-muted-foreground">Your cart is empty</p>
             <SheetTrigger asChild>
-              <Button asChild>
+              <Button asChild className="rounded-md">
                 <Link href="/products">Continue Shopping</Link>
               </Button>
             </SheetTrigger>
@@ -109,7 +109,7 @@ export function CartSheet() {
               <div className="flex flex-col gap-6">
                 {items.map((item) => (
                   <div key={item.product.id} className="flex gap-4">
-                    <div className="relative h-24 w-20 overflow-hidden rounded-md bg-muted flex-shrink-0">
+                    <div className="relative h-24 w-20 overflow-hidden rounded-none bg-muted flex-shrink-0">
                       {item.product.image_url ? (
                         <Image
                           src={item.product.image_url}
@@ -125,14 +125,14 @@ export function CartSheet() {
                       <div className="flex justify-between">
                         <div className="space-y-1">
                           <h4 className="font-medium leading-none line-clamp-1">{item.product.title}</h4>
-                          <p className="text-sm text-muted-foreground">${item.product.price.toFixed(2)}</p>
+                          <p className="text-sm text-muted-foreground">₱{item.product.price.toLocaleString()}</p>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-md"
                           onClick={() => removeItem(item.product.id)}
-                          aria-label="Remove item"
+                          aria-label={`Remove ${item.product.title}`}
                         >
                           <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
@@ -141,7 +141,7 @@ export function CartSheet() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 rounded-full"
+                          className="h-8 w-8 rounded-md"
                           onClick={() => updateQuantity(item.product.id, Math.max(1, item.quantity - 1))}
                           disabled={item.quantity <= 1}
                           aria-label="Decrease quantity"
@@ -152,7 +152,7 @@ export function CartSheet() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 rounded-full"
+                          className="h-8 w-8 rounded-md"
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                           aria-label="Increase quantity"
                         >
@@ -166,12 +166,12 @@ export function CartSheet() {
             </ScrollArea>
             <div className="border-t pt-4 space-y-4">
               <div className="flex justify-between text-lg font-semibold">
-                <span>Total</span>
-                <span>${totalPrice().toFixed(2)}</span>
+                <span className="font-heading">Total</span>
+                <span>₱{totalPrice().toLocaleString()}</span>
               </div>
               <SheetFooter>
                 <SheetTrigger asChild>
-                  <Button asChild className="w-full h-12 rounded-full">
+                  <Button asChild className="w-full h-12 rounded-md">
                     <Link href="/checkout">Proceed to Checkout</Link>
                   </Button>
                 </SheetTrigger>

@@ -35,6 +35,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin_notification: boolean
+          is_read: boolean
+          link: string | null
+          message: string
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_admin_notification?: boolean
+          is_read?: boolean
+          link?: string | null
+          message: string
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin_notification?: boolean
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -112,6 +148,7 @@ export type Database = {
           id: string
           image_url: string | null
           price: number
+          sale_price: number | null
           title: string
         }
         Insert: {
@@ -121,6 +158,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           price: number
+          sale_price?: number | null
           title: string
         }
         Update: {
@@ -130,6 +168,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           price?: number
+          sale_price?: number | null
           title?: string
         }
         Relationships: [
@@ -142,12 +181,166 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          product_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_addresses: {
+        Row: {
+          barangay_code: string
+          barangay_name: string
+          city_code: string
+          city_name: string
+          contact_number: string
+          created_at: string
+          id: string
+          is_default: boolean
+          province_code: string
+          province_name: string
+          region_code: string
+          region_name: string
+          street_address: string
+          user_id: string
+        }
+        Insert: {
+          barangay_code: string
+          barangay_name: string
+          city_code: string
+          city_name: string
+          contact_number: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          province_code: string
+          province_name: string
+          region_code: string
+          region_name: string
+          street_address: string
+          user_id: string
+        }
+        Update: {
+          barangay_code?: string
+          barangay_name?: string
+          city_code?: string
+          city_name?: string
+          contact_number?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          province_code?: string
+          province_name?: string
+          region_code?: string
+          region_name?: string
+          street_address?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_payments: {
+        Row: {
+          card_number: string
+          cardholder_name: string
+          created_at: string
+          cvv: string
+          expiry_date: string
+          id: string
+          is_default: boolean
+          user_id: string
+        }
+        Insert: {
+          card_number: string
+          cardholder_name: string
+          created_at?: string
+          cvv: string
+          expiry_date: string
+          id?: string
+          is_default?: boolean
+          user_id: string
+        }
+        Update: {
+          card_number?: string
+          cardholder_name?: string
+          created_at?: string
+          cvv?: string
+          expiry_date?: string
+          id?: string
+          is_default?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_order_with_items: {
+        Args: { items: Json; order: Json }
+        Returns: {
+          created_at: string
+          id: string
+          shipping_info: Json | null
+          status: string
+          total: number
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

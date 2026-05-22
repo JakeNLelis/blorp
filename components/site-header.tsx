@@ -13,7 +13,6 @@ import {
   ChevronDown,
   Sun,
   Moon,
-  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,35 +30,56 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/client";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { CartSheet } from "./cart-sheet";
-import { signOut } from "@/app/login/actions";
-
-const mainLinks = [
-  { label: "Skin Quiz", href: "#" },
-  { label: "About Us", href: "#" },
-  { label: "Blog", href: "#" },
-  { label: "Sale", href: "#" },
-];
+import { NotificationsDropdown } from "./notifications-dropdown";
+import { createClient } from "@/utils/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useEffect, useState, useMemo } from "react";
 
 export function SiteHeader() {
-  const [user, setUser] = React.useState<SupabaseUser | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const supabase = useMemo(() => createClient(), []);
 
-  React.useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+  useEffect(() => {
+    async function getSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        setRole(profile?.role || "user");
+      } else {
+        setUser(null);
+        setRole(null);
+      }
+    }
+    getSession();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single();
+          setRole(profile?.role || "user");
+        } else {
+          setUser(null);
+          setRole(null);
+        }
+      }
+    );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   React.useEffect(() => {
     const storedTheme = window.localStorage.getItem("theme");
@@ -80,19 +100,15 @@ export function SiteHeader() {
     window.localStorage.setItem("theme", nextTheme);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   return (
     <header className="fixed inset-x-0 top-0 z-50">
-      <div className="flex h-[var(--primary-nav-height)] items-center gap-3 bg-primary px-6 py-4 text-primary-foreground">
+      <div className="flex h-(--primary-nav-height) items-center gap-3 bg-primary px-6 py-4 text-primary-foreground">
         <Link
           href="/"
-          className="flex max-h-8 shrink-0 items-center gap-2 p-2"
+          className="flex max-h-8 items-center gap-2 shrink-0 p-2"
         >
-          <Image alt="Blorp Atelier" className="block size-8" src={logo} />
-          <span className="hidden text-lg font-medium tracking-tighter text-primary-foreground md:flex">
+          <Image alt="Shadcnblocks.com" className="block size-8" src={logo} />
+          <span className="hidden text-lg tracking-tighter md:flex font-medium text-primary-foreground">
             Blorp Atelier
           </span>
         </Link>
@@ -123,35 +139,36 @@ export function SiteHeader() {
               Wishlist
             </Button>
             {user ? (
-               <DropdownMenu>
-               <DropdownMenuTrigger asChild>
-                 <Button
-                   variant="ghost"
-                   className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground data-[state=open]:bg-primary-foreground/10 data-[state=open]:text-primary-foreground"
-                 >
-                   <User className="size-4" />
-                   {user.email}
-                   <ChevronDown className="size-4" />
-                 </Button>
-               </DropdownMenuTrigger>
-               <DropdownMenuContent align="end">
-                 <DropdownMenuItem>My Account</DropdownMenuItem>
-                 <DropdownMenuItem>My Orders</DropdownMenuItem>
-                 <DropdownMenuItem onClick={handleSignOut} className="text-red-500">
-                    <LogOut className="size-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
-               </DropdownMenuContent>
-             </DropdownMenu>
+              <>
+                {role === "admin" && (
+                  <Button
+                    variant="ghost"
+                    className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground font-sans"
+                    asChild
+                  >
+                    <Link href="/admin">Admin Panel</Link>
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground font-sans"
+                  asChild
+                >
+                  <Link href="/profile">
+                    <User className="size-4 mr-1.5" />
+                    Account
+                  </Link>
+                </Button>
+              </>
             ) : (
               <Button
                 variant="ghost"
-                className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                className="h-9 gap-1.5 px-2.5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground font-sans"
                 asChild
               >
                 <Link href="/login">
-                  <User className="size-4" />
-                  Account
+                  <User className="size-4 mr-1.5" />
+                  Log in
                 </Link>
               </Button>
             )}
@@ -174,6 +191,7 @@ export function SiteHeader() {
             <Moon className="hidden size-4 dark:block" />
           </Button>
 
+          <NotificationsDropdown />
           <CartSheet />
 
           <div className="contents lg:hidden">
@@ -190,7 +208,7 @@ export function SiteHeader() {
               <SheetContent side="right">
                 <div className="flex flex-col gap-4">
                   <Button variant="secondary" className="w-full justify-start">
-                    <LayoutGrid className="size-4" />
+                    <LayoutGrid className="size-4 text-foreground/70" />
                     Categories
                   </Button>
                   <div className="flex flex-col gap-2">
@@ -199,15 +217,27 @@ export function SiteHeader() {
                       Wishlist
                     </Button>
                     {user ? (
-                      <Button variant="ghost" className="justify-start text-red-500" onClick={handleSignOut}>
-                        <LogOut className="size-4 mr-2" />
-                        Sign out
-                      </Button>
+                      <>
+                        {role === "admin" && (
+                          <Button variant="ghost" className="justify-start font-sans" asChild>
+                            <Link href="/admin">
+                              <LayoutGrid className="size-4 mr-2" />
+                              Admin Panel
+                            </Link>
+                          </Button>
+                        )}
+                        <Button variant="ghost" className="justify-start font-sans" asChild>
+                          <Link href="/profile">
+                            <User className="size-4 mr-2" />
+                            Account
+                          </Link>
+                        </Button>
+                      </>
                     ) : (
-                      <Button variant="ghost" className="justify-start" asChild>
+                      <Button variant="ghost" className="justify-start font-sans" asChild>
                         <Link href="/login">
                           <User className="size-4 mr-2" />
-                          Account
+                          Log in
                         </Link>
                       </Button>
                     )}
@@ -218,33 +248,57 @@ export function SiteHeader() {
           </div>
         </div>
       </div>
-      <div className="h-[var(--secondary-nav-height)]">
+      <div className="h-(--secondary-nav-height)">
         <div className="bg-accent px-6 py-2">
           <div className="hidden lg:contents">
             <NavigationMenu className="relative flex max-w-max flex-1 items-center justify-start">
               <NavigationMenuList className="flex flex-1 items-center justify-center gap-3.5">
                 <NavigationMenuItem>
-                  <Link href="/products" legacyBehavior passHref>
-                    <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-                      Shop All
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink asChild>
+                    <Link href="/products" className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 cursor-pointer">
+                      Shop
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="px-4">
                     Collections
                   </NavigationMenuTrigger>
                 </NavigationMenuItem>
-                {mainLinks.map((link) => (
-                  <NavigationMenuItem key={link.label}>
-                    <NavigationMenuLink
-                      href={link.href}
-                      className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    href="#"
+                    className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    Skin Quiz
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    href="#"
+                    className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    About Us
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    href="#"
+                    className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    Blog
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <Link
+                      href="/products?sale=true"
+                      className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm transition-all hover:bg-accent-foreground/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 cursor-pointer text-destructive font-semibold"
                     >
-                      {link.label}
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                ))}
+                      Sale 🏷️
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
           </div>
