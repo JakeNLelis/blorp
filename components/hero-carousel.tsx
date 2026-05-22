@@ -20,15 +20,22 @@ export function HeroCarousel() {
       return;
     }
 
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       if (api.selectedScrollSnap() !== current) {
         setCurrent(api.selectedScrollSnap());
       }
     }, 1);
 
-    api.on("select", () => {
+    const onSelect = () => {
       setCurrent(api.selectedScrollSnap());
-    });
+    };
+
+    api.on("select", onSelect);
+
+    return () => {
+      clearTimeout(timer);
+      api.off("select", onSelect);
+    };
   }, [api, current]);
 
   return (

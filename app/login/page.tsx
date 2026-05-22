@@ -3,7 +3,9 @@ import { Input } from "@/components/ui/input";
 import { login, signup, signInWithGoogle } from "./actions";
 import Image from "next/image";
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
+  const params = await searchParams;
+  const error = params?.error;
   return (
     <div className="min-h-svh bg-background text-foreground">
       <div className="grid min-h-svh grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
@@ -28,6 +30,11 @@ export default function LoginPage() {
                 Log in to your account or sign up to create one.
               </p>
             </div>
+            {error && (
+              <p className="text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md">
+                {error}
+              </p>
+            )}
             <form className="space-y-5">
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="email">

@@ -19,10 +19,14 @@ export default function CheckoutPage() {
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true);
     setError(null);
-    const result = await placeOrder(formData, items);
-
-    if (result?.error) {
-      setError(result.error);
+    try {
+      const result = await placeOrder(formData, items);
+      if (result?.error) {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
       setIsPending(false);
     }
   };

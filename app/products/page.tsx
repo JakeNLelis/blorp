@@ -4,6 +4,9 @@ import { SiteFooter } from "@/components/site-footer";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Tables } from "@/types/supabase";
+
+type ProductWithCategory = Tables<"products"> & { categories: { name: string; slug: string } | { name: string; slug: string }[] | null };
 
 export default async function ProductsPage({
   searchParams,
@@ -19,8 +22,27 @@ export default async function ProductsPage({
     query = query.eq("categories.slug", categoryParam);
   }
 
-  const { data: products } = await query;
-  const { data: categories } = await supabase.from("categories").select("*");
+  const { data: productsData, error: productsError } = await query;
+  if (productsError) {
+    console.error("Error fetching products:", productsError);
+    return (
+      <div className="flex min-h-dvh flex-col bg-background text-foreground">
+        <SiteHeader />
+        <div className="pt-[calc(var(--primary-nav-height)+var(--secondary-nav-height))] flex-1 container mx-auto px-6 py-24 text-center">
+          <h1 className="text-2xl font-semibold mb-4">Error loading products</h1>
+          <p className="text-muted-foreground">Please try again later.</p>
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+  const products = (productsData || []) as unknown as ProductWithCategory[];
+
+  const { data: categoriesData, error: categoriesError } = await supabase.from("categories").select("*");
+  if (categoriesError) {
+    console.error("Error fetching categories:", categoriesError);
+  }
+  const categories = categoriesData || [];
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
@@ -47,7 +69,7 @@ export default async function ProductsPage({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {products?.map((product: typeof products[0]) => (
+            {products.map((product) => (
               <Link href={`/products/${product.id}`} key={product.id} className="group">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted mb-4">
                   {product.image_url ? (
@@ -66,7 +88,7 @@ export default async function ProductsPage({
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">
-                    {(product.categories as any)?.name}
+                    {Array.isArray(product.categories) ? product.categories[0]?.name : product.categories?.name}
                   </p>
                   <h3 className="font-medium text-lg tracking-tight group-hover:underline">
                     {product.title}

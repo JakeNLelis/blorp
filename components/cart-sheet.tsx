@@ -61,8 +61,9 @@ export function CartSheet() {
           variant="ghost"
           size="icon"
           className="size-9 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+          aria-label="Open cart"
         >
-          <ShoppingCart className="size-4" />
+          <ShoppingCart className="size-4" aria-hidden="true" />
         </Button>
       </div>
     );
@@ -76,8 +77,9 @@ export function CartSheet() {
             variant="ghost"
             size="icon"
             className="size-9 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            aria-label="Open cart"
           >
-            <ShoppingCart className="size-4" />
+            <ShoppingCart className="size-4" aria-hidden="true" />
           </Button>
           {totalItems() > 0 && (
             <Badge className="absolute right-0 top-0 h-5 translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500 px-2 py-0.5 text-[0.625rem] font-medium text-foreground">
@@ -130,8 +132,9 @@ export function CartSheet() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => removeItem(item.product.id)}
+                          aria-label="Remove item"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
@@ -141,8 +144,9 @@ export function CartSheet() {
                           className="h-8 w-8 rounded-full"
                           onClick={() => updateQuantity(item.product.id, Math.max(1, item.quantity - 1))}
                           disabled={item.quantity <= 1}
+                          aria-label="Decrease quantity"
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-3 w-3" aria-hidden="true" />
                         </Button>
                         <span className="w-4 text-center text-sm">{item.quantity}</span>
                         <Button
@@ -150,8 +154,9 @@ export function CartSheet() {
                           size="icon"
                           className="h-8 w-8 rounded-full"
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          aria-label="Increase quantity"
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3 w-3" aria-hidden="true" />
                         </Button>
                       </div>
                     </div>

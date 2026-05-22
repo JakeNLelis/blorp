@@ -6,11 +6,18 @@ import { createClient } from '@/utils/supabase/server'
 import { headers } from 'next/headers'
 
 export async function login(formData: FormData) {
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  if (!email || !password) {
+    return redirect('/login?error=Missing email or password')
+  }
+
   const supabase = await createClient()
 
   const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+    email,
+    password,
   }
 
   const { error } = await supabase.auth.signInWithPassword(data)
@@ -24,11 +31,18 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  if (!email || !password) {
+    return redirect('/login?error=Missing email or password')
+  }
+
   const supabase = await createClient()
 
   const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+    email,
+    password,
   }
 
   const { error } = await supabase.auth.signUp(data)
@@ -58,6 +72,8 @@ export async function signInWithGoogle() {
 
   if (data.url) {
     redirect(data.url)
+  } else {
+    redirect('/')
   }
 }
 
