@@ -121,7 +121,7 @@ export default async function ProductsPage({
                 <div className="space-y-1.5 flex-1 flex flex-col justify-between px-1">
                   <div>
                     <p className="text-xs text-muted-foreground font-sans tracking-wide uppercase">
-                      {Array.isArray(product.categories) ? product.categories[0]?.name : (product.categories as any)?.name}
+                      {Array.isArray(product.categories) ? product.categories[0]?.name : product.categories?.name}
                     </p>
                     <h3 className="font-semibold text-base tracking-tight text-foreground/95 group-hover:text-primary transition-colors font-sans mt-0.5 line-clamp-1">
                       {product.title}

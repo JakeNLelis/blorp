@@ -287,33 +287,36 @@ export type Database = {
       }
       saved_payments: {
         Row: {
-          card_number: string
+          card_brand: string
           cardholder_name: string
           created_at: string
-          cvv: string
           expiry_date: string
           id: string
           is_default: boolean
+          last4: string
+          payment_method_token: string
           user_id: string
         }
         Insert: {
-          card_number: string
+          card_brand: string
           cardholder_name: string
           created_at?: string
-          cvv: string
           expiry_date: string
           id?: string
           is_default?: boolean
+          last4: string
+          payment_method_token: string
           user_id: string
         }
         Update: {
-          card_number?: string
+          card_brand?: string
           cardholder_name?: string
           created_at?: string
-          cvv?: string
           expiry_date?: string
           id?: string
           is_default?: boolean
+          last4?: string
+          payment_method_token?: string
           user_id?: string
         }
         Relationships: []

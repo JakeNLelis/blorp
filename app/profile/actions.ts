@@ -88,12 +88,19 @@ export async function savePayment(cardData: {
     return { error: "CVV/CVC must be 3 or 4 digits." };
   }
 
+  // Simulate secure tokenization with PCI-DSS compliant mock gateway
+  const mockToken = "pay_tok_" + Math.random().toString(36).substring(2, 12);
+  const last4Digits = cleanCardNumber.slice(-4);
+  const brandChar = cleanCardNumber.charAt(0);
+  const cardBrand = brandChar === "4" ? "Visa" : brandChar === "5" ? "Mastercard" : "Credit Card";
+
   const { error } = await supabase.from("saved_payments").insert({
     user_id: user.id,
-    card_number: cleanCardNumber,
+    payment_method_token: mockToken,
+    last4: last4Digits,
+    card_brand: cardBrand,
     cardholder_name: cardData.cardholderName,
     expiry_date: cardData.expiryDate,
-    cvv: cardData.cvv,
     is_default: cardData.isDefault || false,
   });
 

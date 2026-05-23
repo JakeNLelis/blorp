@@ -29,7 +29,12 @@ CREATE POLICY "Profiles are viewable by everyone."
 CREATE POLICY "Users can update their own profile."
     ON public.profiles FOR UPDATE
     USING (auth.uid() = id)
-    WITH CHECK (auth.uid() = id);
+    WITH CHECK (
+        auth.uid() = id
+        AND (
+            role = (SELECT p.role FROM public.profiles p WHERE p.id = auth.uid())
+        )
+    );
 
 -- 4. Trigger to handle new user registration role
 CREATE OR REPLACE FUNCTION public.fn_handle_new_user()

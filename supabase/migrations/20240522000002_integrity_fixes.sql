@@ -21,7 +21,7 @@ BEGIN
     SET search_path = public, pg_temp;
 
     -- Fetch the correct product price
-    SELECT price INTO v_product_price
+    SELECT COALESCE(sale_price, price) INTO v_product_price
     FROM public.products
     WHERE id = NEW.product_id;
 

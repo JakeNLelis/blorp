@@ -417,7 +417,7 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {payments.map((card) => {
-                  const brand = getCardBrand(card.card_number);
+                  const brand = card.card_brand || "Credit Card";
                   const isVisa = brand === "Visa";
                   return (
                     <div
@@ -447,7 +447,7 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
 
                       {/* Card Number */}
                       <p className="text-lg font-mono tracking-widest py-2 text-white/95">
-                        •••• •••• •••• {card.card_number.slice(-4)}
+                        •••• •••• •••• {card.last4}
                       </p>
 
                       {/* Expiry & Holder Info */}

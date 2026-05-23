@@ -42,6 +42,8 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
+  const [paymentMethodToken, setPaymentMethodToken] = useState<string | null>(null);
+  const [last4, setLast4] = useState<string | null>(null);
 
   // Sync state with selected address
   useEffect(() => {
@@ -73,13 +75,17 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
       setCardNumber("");
       setExpiryDate("");
       setCvv("");
+      setPaymentMethodToken(null);
+      setLast4(null);
     } else {
       const p = savedPayments.find((card) => card.id === selectedPaymentId);
       if (p) {
         setCardholderName(p.cardholder_name);
-        setCardNumber(p.card_number);
+        setCardNumber(`•••• •••• •••• ${p.last4}`);
         setExpiryDate(p.expiry_date);
-        setCvv(p.cvv);
+        setCvv("");
+        setPaymentMethodToken(p.payment_method_token);
+        setLast4(p.last4);
       }
     }
   }, [selectedPaymentId, savedPayments]);
@@ -108,9 +114,15 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
     formData.append("regionName", shippingAddress.regionName);
 
     formData.append("cardholderName", cardholderName);
-    formData.append("cardNumber", cardNumber);
     formData.append("expiryDate", expiryDate);
     formData.append("cvv", cvv);
+
+    if (paymentMethodToken) {
+      formData.append("paymentMethodToken", paymentMethodToken);
+      formData.append("last4", last4 || "");
+    } else {
+      formData.append("cardNumber", cardNumber);
+    }
 
     try {
       const result = await placeOrder(formData, items);
@@ -264,7 +276,7 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
               >
                 {savedPayments.map((card) => (
                   <option key={card.id} value={card.id}>
-                    💳 {getCardBrand(card.card_number)} ending in •••• {card.card_number.slice(-4)}
+                    💳 {card.card_brand || "Credit Card"} ending in •••• {card.last4}
                   </option>
                 ))}
                 <option value="custom">✨ Use a custom/new payment card</option>
@@ -276,7 +288,7 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
                     <CreditCard className="size-5 text-indigo-600 shrink-0" />
                     <div>
                       <p className="font-semibold text-foreground">
-                        {getCardBrand(cardNumber)} ending in {cardNumber.slice(-4)}
+                        {savedPayments.find((c) => c.id === selectedPaymentId)?.card_brand || "Card"} ending in {last4}
                       </p>
                       <p className="text-xs">Holder: {cardholderName} | Expiry: {expiryDate}</p>
                     </div>

@@ -33,23 +33,35 @@ export async function placeOrder(formData: FormData, cartItems: { product: Table
 
   // Payment inputs
   const cardholderName = formData.get('cardholderName') as string;
-  const cardNumber = formData.get('cardNumber') as string;
+  const paymentMethodToken = formData.get('paymentMethodToken') as string | null;
+  const last4 = formData.get('last4') as string | null;
+  const cardNumber = formData.get('cardNumber') as string | null;
   const expiryDate = formData.get('expiryDate') as string;
   const cvv = formData.get('cvv') as string;
 
-  if (!cardholderName || !cardNumber || !expiryDate || !cvv) {
-    return { error: 'Payment card details are required for mock verification.' };
+  if (!cardholderName || !expiryDate || !cvv) {
+    return { error: 'Missing mandatory payment details.' };
   }
 
-  const cleanCard = cardNumber.replace(/\s+/g, "");
-  if (!/^\d{16}$/.test(cleanCard)) {
-    return { error: 'Invalid payment details: Card number must be exactly 16 digits.' };
-  }
   if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate)) {
     return { error: 'Invalid payment details: Expiry date must be MM/YY format.' };
   }
   if (!/^\d{3,4}$/.test(cvv)) {
     return { error: 'Invalid payment details: CVV/CVC must be 3 or 4 digits.' };
+  }
+
+  if (paymentMethodToken) {
+    // Process payment using the saved processor token + checkout-collected CVV securely (PCI-DSS compliant)
+    // In our mock payment gateway, this is instantly verified and auto-approved.
+  } else {
+    // Process new/custom card (direct input)
+    if (!cardNumber) {
+      return { error: 'Card number is required.' };
+    }
+    const cleanCard = cardNumber.replace(/\s+/g, "");
+    if (!/^\d{16}$/.test(cleanCard)) {
+      return { error: 'Invalid payment details: Card number must be exactly 16 digits.' };
+    }
   }
 
   const shippingInfo = {

@@ -132,10 +132,11 @@ CREATE POLICY "Users can delete their own saved addresses"
 CREATE TABLE IF NOT EXISTS public.saved_payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    card_number TEXT NOT NULL,
+    payment_method_token TEXT NOT NULL,
+    last4 VARCHAR(4) NOT NULL,
+    card_brand TEXT NOT NULL,
     cardholder_name TEXT NOT NULL,
     expiry_date TEXT NOT NULL, -- MM/YY
-    cvv TEXT NOT NULL,
     is_default BOOLEAN DEFAULT false NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
