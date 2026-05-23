@@ -110,6 +110,9 @@ BEGIN
         );
     END LOOP;
 
+    -- Re-select the order row to fetch trigger-computed total post order_items insert
+    SELECT * INTO v_order FROM public.orders WHERE id = v_order.id;
+
     RETURN v_order;
 END;
 $$;

@@ -1,67 +1,41 @@
-const categories = [
-  {
-    title: "Sunglasses",
-    description: "Modern shades blending style and sun protection",
-    image:
-      "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/accessories/Checkered-Sunglasses-on-Stone-Pedestal-2.png",
-  },
-  {
-    title: "Jewelry",
-    description: "Elegant pieces to elevate every look",
-    image:
-      "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/accessories/Gold-Hoop-Earrings-on-Ceramic-Dish-2.png",
-  },
-  {
-    title: "Coats & Jackets",
-    description: "Layer up with timeless outerwear styles",
-    image:
-      "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/clothes/Minimalist-Fashion-Portrait-2.png",
-  },
-  {
-    title: "Bags",
-    description: "Functional designs crafted for daily wear",
-    image:
-      "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/clothes/Woman-with-Tote-Bag-2.png",
-  },
-  {
-    title: "Shoes",
-    description: "Step forward with comfort and style",
-    image:
-      "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/clothes/Minimalist-Beige-Sneakers-2.png",
-  },
-  {
-    title: "Dresses",
-    description: "Effortless silhouettes for every occasion",
-    image:
-      "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/clothes/pexels-429124762-15555033-2.jpg",
-  },
-];
+import Link from "next/link";
+import Image from "next/image";
 
-export function ProductCategoriesSection() {
+type CategoryItem = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  image: string;
+};
+
+type ProductCategoriesSectionProps = {
+  categories: CategoryItem[];
+};
+
+export function ProductCategoriesSection({
+  categories,
+}: ProductCategoriesSectionProps) {
   return (
-    <section className="py-32 flex justify-around">
+    <section className="py-32 flex justify-around font-sans">
       <div className="container">
         <div className="flex flex-col gap-10">
-          <h2 className="animate-in text-center text-4xl leading-snug font-medium duration-600 fade-in slide-in-from-bottom-6">
+          <h2 className="text-center text-4xl leading-snug font-semibold font-heading">
             Product Categories
           </h2>
-          <div className="gap grid grid-cols-2 gap-x-2.5 gap-y-10 lg:grid-cols-3">
-            {categories.map((category, index) => (
-              <div
-                key={category.title}
-                className="animate-out opacity-0 duration-700 fade-in-100 fill-mode-forwards"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
+          <div className="gap grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-3">
+            {categories.map((category) => (
+              <div key={category.id} className="transition-all duration-300">
                 <div
                   data-slot="card"
                   data-size="default"
-                  className="ring-foreground/10 text-card-foreground group/card flex flex-col gap-6 overflow-hidden text-sm ring-1 rounded-none border-none bg-background p-0 shadow-none"
+                  className="group/card flex flex-col gap-6 overflow-hidden text-sm ring-1 ring-border rounded-xl bg-card/20 p-4 shadow-none hover:border-primary/20 hover:ring-primary/20 transition-all duration-300"
                 >
-                  <div
-                    data-slot="card-content"
-                    className="group-data-[size=sm]/card:px-4 p-0"
-                  >
-                    <a href="#" className="flex flex-col gap-4">
+                  <div data-slot="card-content" className="p-0">
+                    <Link
+                      href={`/products?category=${category.slug}`}
+                      className="flex flex-col gap-4"
+                    >
                       <div
                         data-radix-aspect-ratio-wrapper=""
                         style={{
@@ -72,31 +46,32 @@ export function ProductCategoriesSection() {
                       >
                         <div
                           data-slot="aspect-ratio"
-                          className="overflow-hidden rounded-xl"
+                          className="overflow-hidden rounded-lg border bg-muted"
                           style={{ position: "absolute", inset: 0 }}
                         >
-                          <img
-                            alt=""
-                            className="size-full origin-center object-cover object-center transition-transform duration-400 hover:scale-115"
+                          <Image
+                            alt={category.title}
                             src={category.image}
+                            fill
+                            className="origin-center object-cover object-center transition-transform duration-500 hover:scale-110"
                           />
                         </div>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1.5 text-center">
                         <div
                           data-slot="card-title"
-                          className="group-data-[size=sm]/card:text-sm text-center text-lg leading-tight font-medium sm:text-xl md:text-2xl"
+                          className="text-lg leading-tight font-semibold sm:text-xl font-heading text-foreground group-hover/card:text-primary transition-colors"
                         >
                           {category.title}
                         </div>
                         <div
                           data-slot="card-description"
-                          className="text-muted-foreground text-sm text-center"
+                          className="text-muted-foreground text-xs font-medium leading-relaxed max-w-70 mx-auto"
                         >
                           {category.description}
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

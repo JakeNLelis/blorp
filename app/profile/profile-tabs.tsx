@@ -15,22 +15,54 @@ import {
   AlertCircle,
   Package,
   User,
-  CreditCard as CardIcon
+  CreditCard as CardIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PhilippineAddressCascader, AddressData } from "@/components/philippine-address-cascader";
-import { saveAddress, deleteAddress, savePayment, deletePayment } from "./actions";
+import {
+  PhilippineAddressCascader,
+  AddressData,
+} from "@/components/philippine-address-cascader";
+import {
+  saveAddress,
+  deleteAddress,
+  savePayment,
+  deletePayment,
+} from "./actions";
+import { Tables } from "@/types/supabase";
+
+type ProfileProduct = {
+  id: string;
+  title: string;
+  image_url: string | null;
+};
+
+type ProfileOrderItem = {
+  id: string;
+  price: number;
+  quantity: number;
+  products: ProfileProduct | ProfileProduct[] | null;
+};
+
+type ProfileOrder = {
+  id: string;
+  created_at: string;
+  status: string;
+  total: number;
+  order_items: ProfileOrderItem[];
+};
 
 type ProfileTabsProps = {
-  orders: any[];
-  addresses: any[];
-  payments: any[];
+  orders: ProfileOrder[];
+  addresses: Tables<"saved_addresses">[];
+  payments: Tables<"saved_payments">[];
 };
 
 export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"orders" | "addresses" | "payments">("orders");
+  const [activeTab, setActiveTab] = useState<
+    "orders" | "addresses" | "payments"
+  >("orders");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -164,7 +196,9 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
             setSuccess(null);
           }}
           className={`pb-3 transition-all relative flex items-center gap-2 ${
-            activeTab === "orders" ? "text-primary border-b-2 border-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+            activeTab === "orders"
+              ? "text-primary border-b-2 border-primary font-semibold"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <ShoppingBag className="size-4" />
@@ -178,7 +212,9 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
             setSuccess(null);
           }}
           className={`pb-3 transition-all relative flex items-center gap-2 ${
-            activeTab === "addresses" ? "text-primary border-b-2 border-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+            activeTab === "addresses"
+              ? "text-primary border-b-2 border-primary font-semibold"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <MapPin className="size-4" />
@@ -192,7 +228,9 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
             setSuccess(null);
           }}
           className={`pb-3 transition-all relative flex items-center gap-2 ${
-            activeTab === "payments" ? "text-primary border-b-2 border-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+            activeTab === "payments"
+              ? "text-primary border-b-2 border-primary font-semibold"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <CreditCard className="size-4" />
@@ -224,9 +262,12 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
                 <ShoppingBag className="size-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-lg font-medium font-heading">No orders yet</h3>
+                <h3 className="text-lg font-medium font-heading">
+                  No orders yet
+                </h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  Explore our collections and discover something tailored just for you.
+                  Explore our collections and discover something tailored just
+                  for you.
                 </p>
               </div>
               <Button asChild className="rounded-md">
@@ -244,42 +285,63 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
                   <div className="flex flex-wrap items-center justify-between gap-4 bg-muted/40 px-6 py-4 border-b text-sm">
                     <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
                       <div>
-                        <p className="text-xs text-muted-foreground">Order Date</p>
-                        <p className="font-medium text-foreground">{formatDate(order.created_at)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Order Date
+                        </p>
+                        <p className="font-medium text-foreground">
+                          {formatDate(order.created_at)}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Order Ref</p>
-                        <p className="font-mono text-xs uppercase tracking-wide text-foreground/80">{order.id.slice(0, 8)}...</p>
+                        <p className="text-xs text-muted-foreground">
+                          Order Ref
+                        </p>
+                        <p className="font-mono text-xs uppercase tracking-wide text-foreground/80">
+                          {order.id.slice(0, 8)}...
+                        </p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Fulfillment</p>
-                        <span className={`inline-flex items-center rounded-none px-2.5 py-0.5 text-[10px] font-bold uppercase border mt-0.5 ${
-                          order.status === "completed"
-                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                            : order.status === "pending"
-                            ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                            : order.status === "shipped"
-                            ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-                            : order.status === "reported"
-                            ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                            : "bg-muted text-muted-foreground border-border"
-                        }`}>
+                        <p className="text-xs text-muted-foreground">
+                          Fulfillment
+                        </p>
+                        <span
+                          className={`inline-flex items-center rounded-none px-2.5 py-0.5 text-[10px] font-bold uppercase border mt-0.5 ${
+                            order.status === "completed"
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              : order.status === "pending"
+                                ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                : order.status === "shipped"
+                                  ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                                  : order.status === "reported"
+                                    ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                                    : "bg-muted text-muted-foreground border-border"
+                          }`}
+                        >
                           {order.status}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground">Total Paid</p>
-                      <p className="text-base font-semibold text-foreground">₱{Number(order.total).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Total Paid
+                      </p>
+                      <p className="text-base font-semibold text-foreground">
+                        ₱{Number(order.total).toLocaleString()}
+                      </p>
                     </div>
                   </div>
 
                   {/* Order Items */}
                   <div className="divide-y divide-border px-6">
-                    {(order.order_items || []).map((item: any) => {
-                      const product = Array.isArray(item.products) ? item.products[0] : item.products;
+                    {(order.order_items || []).map((item) => {
+                      const product = Array.isArray(item.products)
+                        ? item.products[0]
+                        : item.products;
                       return (
-                        <div key={item.id} className="flex items-center gap-4 py-4">
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-4 py-4"
+                        >
                           <div className="relative aspect-square size-16 shrink-0 overflow-hidden rounded-none bg-muted border">
                             {product?.image_url ? (
                               <Image
@@ -297,18 +359,27 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
                           </div>
                           <div className="flex-1 min-w-0">
                             {product ? (
-                              <Link href={`/products/${product.id}`} className="font-medium text-foreground hover:underline truncate block">
+                              <Link
+                                href={`/products/${product.id}`}
+                                className="font-medium text-foreground hover:underline truncate block"
+                              >
                                 {product.title}
                               </Link>
                             ) : (
-                              <p className="font-medium text-foreground italic">Unavailable Product</p>
+                              <p className="font-medium text-foreground italic">
+                                Unavailable Product
+                              </p>
                             )}
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              Qty: {item.quantity} × ₱{Number(item.price).toLocaleString()}
+                              Qty: {item.quantity} × ₱
+                              {Number(item.price).toLocaleString()}
                             </p>
                           </div>
                           <div className="text-right text-sm font-medium">
-                            ₱{(Number(item.price) * item.quantity).toLocaleString()}
+                            ₱
+                            {(
+                              Number(item.price) * item.quantity
+                            ).toLocaleString()}
                           </div>
                         </div>
                       );
@@ -326,12 +397,16 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12">
           {/* Address List */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold font-heading mb-4">My Saved Addresses</h3>
+            <h3 className="text-lg font-semibold font-heading mb-4">
+              My Saved Addresses
+            </h3>
             {addresses.length === 0 ? (
               <div className="text-center py-12 border border-dashed rounded-none text-muted-foreground bg-muted/5">
                 <MapPin className="size-8 mx-auto text-muted-foreground/50 mb-2" />
                 <p className="font-medium">No saved addresses</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Add an address using the form to checkout faster.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Add an address using the form to checkout faster.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
@@ -349,7 +424,9 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
                       <Trash2 className="size-4.5" />
                     </button>
                     <div>
-                      <p className="font-bold text-foreground">Shipping Address</p>
+                      <p className="font-bold text-foreground">
+                        Shipping Address
+                      </p>
                       <p className="text-xs text-emerald-600 font-semibold mt-0.5 flex items-center gap-1">
                         📞 Contact: {addr.contact_number}
                       </p>
@@ -360,7 +437,8 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
                         Brgy. {addr.barangay_name}, {addr.city_name}
                       </p>
                       <p>
-                        {addr.province_name ? addr.province_name + ", " : ""}{addr.region_name}
+                        {addr.province_name ? addr.province_name + ", " : ""}
+                        {addr.region_name}
                       </p>
                     </div>
                   </div>
@@ -372,8 +450,12 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
           {/* Add Address Form */}
           <div className="rounded-none border bg-card/45 p-6 space-y-6 h-fit">
             <div className="space-y-1">
-              <h4 className="text-lg font-semibold font-heading">Add New Address</h4>
-              <p className="text-xs text-muted-foreground">Specify geographic location cascade from PSGC standard database.</p>
+              <h4 className="text-lg font-semibold font-heading">
+                Add New Address
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Specify geographic location cascade from PSGC standard database.
+              </p>
             </div>
             <form onSubmit={handleSaveAddress} className="space-y-5">
               <PhilippineAddressCascader
@@ -407,12 +489,16 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12">
           {/* Cards List */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold font-heading mb-4">My Saved Cards</h3>
+            <h3 className="text-lg font-semibold font-heading mb-4">
+              My Saved Cards
+            </h3>
             {payments.length === 0 ? (
               <div className="text-center py-12 border border-dashed rounded-none text-muted-foreground bg-muted/5">
                 <CreditCard className="size-8 mx-auto text-muted-foreground/50 mb-2" />
                 <p className="font-medium">No saved cards</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Save typical Visa or Mastercard cards here for rapid checkout.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Save typical Visa or Mastercard cards here for rapid checkout.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -453,14 +539,20 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
                       {/* Expiry & Holder Info */}
                       <div className="flex justify-between items-end text-xs font-mono">
                         <div>
-                          <p className="text-[9px] text-white/60 uppercase tracking-wider">Cardholder</p>
-                          <p className="font-semibold uppercase tracking-wide truncate max-w-[140px] text-white/90">
+                          <p className="text-[9px] text-white/60 uppercase tracking-wider">
+                            Cardholder
+                          </p>
+                          <p className="font-semibold uppercase tracking-wide truncate max-w-35 text-white/90">
                             {card.cardholder_name}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[9px] text-white/60 uppercase tracking-wider">Expires</p>
-                          <p className="font-semibold text-white/90">{card.expiry_date}</p>
+                          <p className="text-[9px] text-white/60 uppercase tracking-wider">
+                            Expires
+                          </p>
+                          <p className="font-semibold text-white/90">
+                            {card.expiry_date}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -473,10 +565,17 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
           {/* Add Card Form */}
           <div className="rounded-none border bg-card/45 p-6 space-y-6 h-fit">
             <div className="space-y-1">
-              <h4 className="text-lg font-semibold font-heading">Add New Card</h4>
-              <p className="text-xs text-muted-foreground">Save standard Visa or Mastercard payment credentials securely.</p>
+              <h4 className="text-lg font-semibold font-heading">
+                Add New Card
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Save standard Visa or Mastercard payment credentials securely.
+              </p>
             </div>
-            <form onSubmit={handleSavePayment} className="space-y-4 font-sans text-sm">
+            <form
+              onSubmit={handleSavePayment}
+              className="space-y-4 font-sans text-sm"
+            >
               {/* Cardholder Name */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -486,7 +585,9 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
                   type="text"
                   placeholder="e.g. JUAN DELA CRUZ"
                   value={cardholderName}
-                  onChange={(e) => setCardholderName(e.target.value.toUpperCase())}
+                  onChange={(e) =>
+                    setCardholderName(e.target.value.toUpperCase())
+                  }
                   required
                   disabled={loading}
                 />
@@ -553,7 +654,13 @@ export function ProfileTabs({ orders, addresses, payments }: ProfileTabsProps) {
 
               <Button
                 type="submit"
-                disabled={loading || !cardNumber || !cardholderName || !expiryDate || !cvv}
+                disabled={
+                  loading ||
+                  !cardNumber ||
+                  !cardholderName ||
+                  !expiryDate ||
+                  !cvv
+                }
                 className="w-full h-11 rounded-md justify-center mt-3"
               >
                 {loading ? (

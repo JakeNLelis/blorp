@@ -85,7 +85,10 @@ CREATE POLICY "Users can update their own notifications"
 -- System or admin can insert notifications
 CREATE POLICY "System or admin can insert notifications"
     ON public.notifications FOR INSERT
-    WITH CHECK (true);
+    WITH CHECK (
+        (auth.uid() = user_id AND is_admin_notification IS FALSE) OR
+        public.is_admin()
+    );
 
 
 -- 4. Create saved_addresses table

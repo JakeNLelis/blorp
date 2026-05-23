@@ -38,7 +38,7 @@ export async function submitReview(productId: string, rating: number, comment: s
     if (error.code === "23505") {
       return { error: "You have already reviewed this product." };
     }
-    return { error: error.message };
+    return { error: "An internal error occurred while submitting your review." };
   }
 
   revalidatePath(`/products/${productId}`);

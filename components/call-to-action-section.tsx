@@ -1,11 +1,15 @@
+import Link from "next/link";
+import Image from "next/image";
+
 export function CallToActionSection() {
   return (
     <section>
-      <div className="relative h-[400px] overflow-hidden md:h-[600px]">
-        <img
+      <div className="relative h-100 overflow-hidden md:h-150">
+        <Image
           alt="Model showcasing Blorp accessories"
-          className="h-full w-full object-cover"
           src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2000&auto=format&fit=crop"
+          fill
+          className="object-cover"
         />
         <div
           aria-hidden="true"
@@ -20,12 +24,12 @@ export function CallToActionSection() {
             the modern aesthetic. Crafted with precision and uncompromising
             quality.
           </p>
-          <a
+          <Link
             href="/products"
             className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 md:h-10 md:px-5 md:py-2.5"
           >
             Shop New Arrivals
-          </a>
+          </Link>
         </div>
       </div>
     </section>

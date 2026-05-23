@@ -23,7 +23,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const error = params?.error;
-  const errorMessage = error ? (ERROR_MESSAGES[error] ?? "An unexpected error occurred.") : null;
+  const errorMessage = error
+    ? (ERROR_MESSAGES[error] ?? "An unexpected error occurred.")
+    : null;
   const mode = params?.mode === "signup" ? "signup" : "login";
   const status = params?.status;
   const email = params?.email;
@@ -42,7 +44,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           />
         </div>
         <div className="relative flex items-center justify-center px-6 py-16">
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(transparent_39px,rgba(0,0,0,0.06)_40px),linear-gradient(90deg,transparent_39px,rgba(0,0,0,0.06)_40px)] bg-[length:40px_40px] dark:bg-[linear-gradient(transparent_39px,rgba(255,255,255,0.06)_40px),linear-gradient(90deg,transparent_39px,rgba(255,255,255,0.06)_40px)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(transparent_39px,rgba(0,0,0,0.06)_40px),linear-gradient(90deg,transparent_39px,rgba(0,0,0,0.06)_40px)] bg-size-[40px_40px] dark:bg-[linear-gradient(transparent_39px,rgba(255,255,255,0.06)_40px),linear-gradient(90deg,transparent_39px,rgba(255,255,255,0.06)_40px)]" />
           <div className="relative w-full max-w-md space-y-8">
             <div className="space-y-2">
               {isConfirmationState ? (

@@ -90,13 +90,17 @@ export function CartSheet() {
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col sm:max-w-lg font-sans">
         <SheetHeader className="px-1">
-          <SheetTitle className="font-heading">Your Cart ({totalItems()})</SheetTitle>
+          <SheetTitle className="font-heading">
+            Your Cart ({totalItems()})
+          </SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center space-y-4">
             <ShoppingCart className="h-12 w-12 text-muted-foreground" />
-            <p className="text-lg font-medium text-muted-foreground">Your cart is empty</p>
+            <p className="text-lg font-medium text-muted-foreground">
+              Your cart is empty
+            </p>
             <SheetTrigger asChild>
               <Button asChild className="rounded-md">
                 <Link href="/products">Continue Shopping</Link>
@@ -109,7 +113,7 @@ export function CartSheet() {
               <div className="flex flex-col gap-6">
                 {items.map((item) => (
                   <div key={item.product.id} className="flex gap-4">
-                    <div className="relative h-24 w-20 overflow-hidden rounded-none bg-muted flex-shrink-0">
+                    <div className="relative h-24 w-20 overflow-hidden rounded-none bg-muted shrink-0">
                       {item.product.image_url ? (
                         <Image
                           src={item.product.image_url}
@@ -124,8 +128,12 @@ export function CartSheet() {
                     <div className="flex flex-1 flex-col justify-between">
                       <div className="flex justify-between">
                         <div className="space-y-1">
-                          <h4 className="font-medium leading-none line-clamp-1">{item.product.title}</h4>
-                          <p className="text-sm text-muted-foreground">₱{item.product.price.toLocaleString()}</p>
+                          <h4 className="font-medium leading-none line-clamp-1">
+                            {item.product.title}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            ₱{item.product.price.toLocaleString()}
+                          </p>
                         </div>
                         <Button
                           variant="ghost"
@@ -142,18 +150,28 @@ export function CartSheet() {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 rounded-md"
-                          onClick={() => updateQuantity(item.product.id, Math.max(1, item.quantity - 1))}
+                          onClick={() =>
+                            updateQuantity(
+                              item.product.id,
+                              Math.max(1, item.quantity - 1),
+                            )
+                          }
                           disabled={item.quantity <= 1}
                           aria-label="Decrease quantity"
                         >
                           <Minus className="h-3 w-3" aria-hidden="true" />
                         </Button>
-                        <span className="w-4 text-center text-sm">{item.quantity}</span>
+                        <span className="w-4 text-center text-sm">
+                          {item.quantity}
+                        </span>
                         <Button
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 rounded-md"
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() =>
+                            updateQuantity(item.product.id, item.quantity + 1)
+                          }
+                          disabled={item.quantity >= (item.product.stock ?? 50)}
                           aria-label="Increase quantity"
                         >
                           <Plus className="h-3 w-3" aria-hidden="true" />

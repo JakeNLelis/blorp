@@ -8,7 +8,9 @@ import { Tables } from "@/types/supabase";
 import { Star } from "lucide-react";
 import { ReviewForm } from "./review-form";
 
-type ProductWithCategory = Tables<"products"> & { categories: { name: string } | { name: string }[] | null };
+type ProductWithCategory = Tables<"products"> & {
+  categories: { name: string } | { name: string }[] | null;
+};
 
 export default async function ProductDetailPage({
   params,
@@ -37,10 +39,14 @@ export default async function ProductDetailPage({
     title: data.title,
     description: data.description,
     price: Number(data.price),
-    sale_price: data.sale_price ? Number(data.sale_price) : null,
+    sale_price:
+      data.sale_price !== null && data.sale_price !== undefined
+        ? Number(data.sale_price)
+        : null,
     image_url: data.image_url,
     category_id: data.category_id,
     created_at: data.created_at,
+    stock: data.stock,
   };
 
   const categoryName = Array.isArray(data.categories)
@@ -58,10 +64,13 @@ export default async function ProductDetailPage({
   // Calculate review averages
   const reviewsCount = reviews.length;
   const ratingSum = reviews.reduce((sum, r) => sum + r.rating, 0);
-  const ratingAvg = reviewsCount > 0 ? (ratingSum / reviewsCount).toFixed(1) : null;
+  const ratingAvg =
+    reviewsCount > 0 ? (ratingSum / reviewsCount).toFixed(1) : null;
 
   // Determine if user can write a review (authenticated + bought in a completed order + not reviewed yet)
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   let canReview = false;
   if (user) {
     const { data: purchaseHistory } = await supabase
@@ -70,7 +79,7 @@ export default async function ProductDetailPage({
       .eq("user_id", user.id)
       .eq("status", "completed")
       .eq("order_items.product_id", id);
-    
+
     canReview = !!purchaseHistory && purchaseHistory.length > 0;
 
     if (canReview) {
@@ -93,7 +102,7 @@ export default async function ProductDetailPage({
         <div className="container mx-auto px-6 py-12 lg:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
             {/* Product Image */}
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-none bg-muted border border-muted/50">
+            <div className="relative aspect-4/5 w-full overflow-hidden rounded-none bg-muted border border-muted/50">
               {product.image_url ? (
                 <Image
                   src={product.image_url}
@@ -119,34 +128,74 @@ export default async function ProductDetailPage({
                 <h1 className="text-4xl md:text-5xl font-semibold tracking-tight font-heading">
                   {product.title}
                 </h1>
-                
+
                 {/* Star rating summary near title */}
                 {ratingAvg && (
                   <div className="flex items-center gap-2 pt-1 font-sans">
                     <div className="flex items-center text-amber-400">
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className={`size-4 ${s <= Math.round(Number(ratingAvg)) ? "fill-amber-400" : "text-muted-foreground/30"}`} />
+                        <Star
+                          key={s}
+                          className={`size-4 ${s <= Math.round(Number(ratingAvg)) ? "fill-amber-400" : "text-muted-foreground/30"}`}
+                        />
                       ))}
                     </div>
                     <span className="text-sm font-semibold">{ratingAvg}</span>
-                    <span className="text-xs text-muted-foreground">({reviewsCount} {reviewsCount === 1 ? "review" : "reviews"})</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({reviewsCount}{" "}
+                      {reviewsCount === 1 ? "review" : "reviews"})
+                    </span>
                   </div>
                 )}
 
                 {/* Display price in PHP with discount support */}
                 <div className="pt-2">
-                  {product.sale_price ? (
-                    <div className="flex items-center gap-3 font-sans">
-                      <span className="text-3xl font-bold text-destructive">₱{product.sale_price.toLocaleString()}</span>
-                      <span className="text-xl text-muted-foreground line-through">₱{product.price.toLocaleString()}</span>
-                      <span className="text-xs bg-destructive/10 text-destructive px-2.5 py-0.5 rounded-none font-bold uppercase tracking-wider">
-                        -{Math.round(((product.price - product.sale_price) / product.price) * 100)}% OFF
-                      </span>
+                  {product.sale_price !== null &&
+                  product.sale_price !== undefined ? (
+                    <div className="flex flex-col gap-2 font-sans">
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl font-bold text-destructive">
+                          ₱{product.sale_price.toLocaleString()}
+                        </span>
+                        <span className="text-xl text-muted-foreground line-through">
+                          ₱{product.price.toLocaleString()}
+                        </span>
+                        <span className="text-xs bg-destructive/10 text-destructive px-2.5 py-0.5 rounded-none font-bold uppercase tracking-wider">
+                          -
+                          {product.price !== 0 &&
+                          product.price !== null &&
+                          product.price !== undefined
+                            ? Math.round(
+                                ((product.price - product.sale_price) /
+                                  product.price) *
+                                  100,
+                              )
+                            : 0}
+                          % OFF
+                        </span>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-3xl font-bold font-sans">
                       ₱{product.price.toLocaleString()}
                     </p>
+                  )}
+                </div>
+
+                {/* Stock Level Warning */}
+                <div className="pt-1 font-sans text-xs">
+                  {product.stock === 0 ? (
+                    <span className="text-destructive font-bold uppercase tracking-wider">
+                      Out of Stock ❌
+                    </span>
+                  ) : product.stock <= 5 ? (
+                    <span className="text-amber-600 font-semibold">
+                      ⚠️ Only {product.stock} left in stock - order soon!
+                    </span>
+                  ) : (
+                    <span className="text-emerald-600 font-medium">
+                      ✓ {product.stock} items available in stock
+                    </span>
                   )}
                 </div>
               </div>
@@ -177,23 +226,29 @@ export default async function ProductDetailPage({
               {/* Ratings Summary & Form */}
               <div className="space-y-6">
                 <div className="bg-card/40 rounded-none border p-6 text-center space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Average Rating</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Average Rating
+                  </p>
                   <p className="text-6xl font-extrabold tracking-tight">
                     {ratingAvg || "0.0"}
                   </p>
                   <div className="flex items-center justify-center text-amber-400">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className={`size-5 ${s <= Math.round(Number(ratingAvg || 0)) ? "fill-amber-400" : "text-muted-foreground/30"}`} />
+                      <Star
+                        key={s}
+                        className={`size-5 ${s <= Math.round(Number(ratingAvg || 0)) ? "fill-amber-400" : "text-muted-foreground/30"}`}
+                      />
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Based on {reviewsCount} {reviewsCount === 1 ? "verified review" : "verified reviews"}
+                    Based on {reviewsCount}{" "}
+                    {reviewsCount === 1
+                      ? "verified review"
+                      : "verified reviews"}
                   </p>
                 </div>
 
-                {canReview && (
-                  <ReviewForm productId={product.id} />
-                )}
+                {canReview && <ReviewForm productId={product.id} />}
               </div>
 
               {/* Reviews List */}
@@ -201,31 +256,46 @@ export default async function ProductDetailPage({
                 {reviews.length === 0 ? (
                   <div className="text-center py-16 border border-dashed rounded-none text-muted-foreground bg-card/10">
                     <p className="font-semibold text-base">No reviews yet</p>
-                    <p className="text-xs mt-1 text-muted-foreground/80">Purchased this item? Be the first to share your thoughts!</p>
+                    <p className="text-xs mt-1 text-muted-foreground/80">
+                      Purchased this item? Be the first to share your thoughts!
+                    </p>
                   </div>
                 ) : (
                   reviews.map((review) => {
-                    const buyerName = "Verified Buyer #" + review.user_id.substring(0, 4).toUpperCase();
+                    const buyerName =
+                      "Verified Buyer #" +
+                      review.user_id.substring(0, 4).toUpperCase();
                     return (
-                      <div key={review.id} className="p-6 rounded-none border bg-card/15 space-y-3 hover:border-foreground/50 transition-all duration-300">
+                      <div
+                        key={review.id}
+                        className="p-6 rounded-none border bg-card/15 space-y-3 hover:border-foreground/50 transition-all duration-300"
+                      >
                         <div className="flex items-center justify-between gap-4">
                           <div>
                             <p className="font-semibold text-sm flex items-center gap-2">
                               {buyerName}
-                              <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-none font-bold">Verified Purchase</span>
+                              <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-none font-bold">
+                                Verified Purchase
+                              </span>
                             </p>
                             <div className="flex items-center text-amber-400 mt-1">
                               {[1, 2, 3, 4, 5].map((s) => (
-                                <Star key={s} className={`size-3.5 ${s <= review.rating ? "fill-amber-400" : "text-muted-foreground/30"}`} />
+                                <Star
+                                  key={s}
+                                  className={`size-3.5 ${s <= review.rating ? "fill-amber-400" : "text-muted-foreground/30"}`}
+                                />
                               ))}
                             </div>
                           </div>
                           <span className="text-[10px] text-muted-foreground">
-                            {new Date(review.created_at).toLocaleDateString(undefined, {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
+                            {new Date(review.created_at).toLocaleDateString(
+                              undefined,
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              },
+                            )}
                           </span>
                         </div>
                         {review.comment && (
@@ -240,7 +310,6 @@ export default async function ProductDetailPage({
               </div>
             </div>
           </div>
-
         </div>
       </div>
       <SiteFooter />

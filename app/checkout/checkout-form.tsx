@@ -2,21 +2,35 @@
 
 import { useCartStore } from "@/store/cart";
 import { useStore } from "@/components/cart-sheet";
+import { Tables } from "@/types/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { placeOrder } from "./actions";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { PhilippineAddressCascader, AddressData } from "@/components/philippine-address-cascader";
-import { MapPin, CreditCard, ArrowLeft, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
+import {
+  PhilippineAddressCascader,
+  AddressData,
+} from "@/components/philippine-address-cascader";
+import {
+  MapPin,
+  CreditCard,
+  ArrowLeft,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
 import Link from "next/link";
 
 type CheckoutFormProps = {
-  savedAddresses: any[];
-  savedPayments: any[];
+  savedAddresses: Tables<"saved_addresses">[];
+  savedPayments: Tables<"saved_payments">[];
 };
 
-export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProps) {
+export function CheckoutForm({
+  savedAddresses,
+  savedPayments,
+}: CheckoutFormProps) {
   const items = useStore(useCartStore, (state) => state.items) ?? [];
   const totalPrice = useCartStore((state) => state.totalPrice);
   const clearCart = useCartStore((state) => state.clearCart);
@@ -26,23 +40,27 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
 
   // Profile Selector states
   const [selectedAddressId, setSelectedAddressId] = useState<string>(
-    savedAddresses.length > 0 ? savedAddresses[0].id : "custom"
+    savedAddresses.length > 0 ? savedAddresses[0].id : "custom",
   );
   const [selectedPaymentId, setSelectedPaymentId] = useState<string>(
-    savedPayments.length > 0 ? savedPayments[0].id : "custom"
+    savedPayments.length > 0 ? savedPayments[0].id : "custom",
   );
 
   // Shipping Form states
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [shippingAddress, setShippingAddress] = useState<AddressData | null>(null);
+  const [shippingAddress, setShippingAddress] = useState<AddressData | null>(
+    null,
+  );
 
   // Card Form states
   const [cardholderName, setCardholderName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
-  const [paymentMethodToken, setPaymentMethodToken] = useState<string | null>(null);
+  const [paymentMethodToken, setPaymentMethodToken] = useState<string | null>(
+    null,
+  );
   const [last4, setLast4] = useState<string | null>(null);
 
   // Sync state with selected address
@@ -133,12 +151,19 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
         clearCart();
       }
     } catch (err) {
-      if (err instanceof Error && 'digest' in err && typeof err.digest === 'string' && err.digest.startsWith('NEXT_REDIRECT')) {
+      if (
+        err instanceof Error &&
+        "digest" in err &&
+        typeof err.digest === "string" &&
+        err.digest.startsWith("NEXT_REDIRECT")
+      ) {
         // Success redirect
         clearCart();
         throw err;
       }
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
     } finally {
       setIsPending(false);
     }
@@ -153,10 +178,8 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-12 font-sans">
-      
       {/* Checkout Form Container */}
       <form onSubmit={handleSubmit} className="space-y-10">
-        
         {/* SECTION 1: SHIPPING DETAILS */}
         <div className="space-y-6">
           <div className="flex items-center gap-3">
@@ -181,7 +204,8 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
               >
                 {savedAddresses.map((addr) => (
                   <option key={addr.id} value={addr.id}>
-                    📦 {addr.street_address}, Brgy. {addr.barangay_name}, {addr.city_name}
+                    📦 {addr.street_address}, Brgy. {addr.barangay_name},{" "}
+                    {addr.city_name}
                   </option>
                 ))}
                 <option value="custom">✨ Ship to a custom/new address</option>
@@ -189,7 +213,7 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
 
               {selectedAddressId !== "custom" && shippingAddress && (
                 <div className="mt-3 p-4 rounded-none border bg-card/60 text-sm text-muted-foreground relative overflow-hidden">
-                  <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-emerald-500/5 to-transparent pointer-events-none" />
+                  <div className="absolute top-0 right-0 h-full w-1/3 bg-linear-to-l from-emerald-500/5 to-transparent pointer-events-none" />
                   <div className="flex justify-between items-start">
                     <p className="font-semibold text-foreground text-xs uppercase tracking-wide flex items-center gap-1.5">
                       <MapPin className="size-3.5 text-emerald-600" />
@@ -199,10 +223,22 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
                       Saved
                     </span>
                   </div>
-                  <p className="mt-2 text-foreground font-medium">{shippingAddress.streetAddress}</p>
-                  <p>Brgy. {shippingAddress.barangayName}, {shippingAddress.cityName}</p>
-                  <p>{shippingAddress.provinceName ? shippingAddress.provinceName + ", " : ""}{shippingAddress.regionName}</p>
-                  <p className="text-emerald-600 font-semibold text-xs mt-2">📞 Contact: {shippingAddress.contactNumber}</p>
+                  <p className="mt-2 text-foreground font-medium">
+                    {shippingAddress.streetAddress}
+                  </p>
+                  <p>
+                    Brgy. {shippingAddress.barangayName},{" "}
+                    {shippingAddress.cityName}
+                  </p>
+                  <p>
+                    {shippingAddress.provinceName
+                      ? shippingAddress.provinceName + ", "
+                      : ""}
+                    {shippingAddress.regionName}
+                  </p>
+                  <p className="text-emerald-600 font-semibold text-xs mt-2">
+                    📞 Contact: {shippingAddress.contactNumber}
+                  </p>
                 </div>
               )}
             </div>
@@ -211,7 +247,10 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
           {/* Recipient Identity */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="firstName" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <label
+                htmlFor="firstName"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 First Name
               </label>
               <Input
@@ -224,7 +263,10 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="lastName" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <label
+                htmlFor="lastName"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
                 Last Name
               </label>
               <Input
@@ -276,7 +318,8 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
               >
                 {savedPayments.map((card) => (
                   <option key={card.id} value={card.id}>
-                    💳 {card.card_brand || "Credit Card"} ending in •••• {card.last4}
+                    💳 {card.card_brand || "Credit Card"} ending in ••••{" "}
+                    {card.last4}
                   </option>
                 ))}
                 <option value="custom">✨ Use a custom/new payment card</option>
@@ -288,9 +331,13 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
                     <CreditCard className="size-5 text-indigo-600 shrink-0" />
                     <div>
                       <p className="font-semibold text-foreground">
-                        {savedPayments.find((c) => c.id === selectedPaymentId)?.card_brand || "Card"} ending in {last4}
+                        {savedPayments.find((c) => c.id === selectedPaymentId)
+                          ?.card_brand || "Card"}{" "}
+                        ending in {last4}
                       </p>
-                      <p className="text-xs">Holder: {cardholderName} | Expiry: {expiryDate}</p>
+                      <p className="text-xs">
+                        Holder: {cardholderName} | Expiry: {expiryDate}
+                      </p>
                     </div>
                   </div>
                   <span className="text-[10px] bg-indigo-500/10 text-indigo-600 font-semibold px-2.5 py-0.5 rounded-none border border-indigo-500/20">
@@ -311,7 +358,9 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
                 <Input
                   placeholder="e.g. JUAN DELA CRUZ"
                   value={cardholderName}
-                  onChange={(e) => setCardholderName(e.target.value.toUpperCase())}
+                  onChange={(e) =>
+                    setCardholderName(e.target.value.toUpperCase())
+                  }
                   required
                   disabled={isPending}
                 />
@@ -382,7 +431,11 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
 
         {/* Submit Checkout Button */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
-          <Button variant="ghost" asChild className="rounded-md flex items-center gap-2">
+          <Button
+            variant="ghost"
+            asChild
+            className="rounded-md flex items-center gap-2"
+          >
             <Link href="/products">
               <ArrowLeft className="size-4" />
               Back to Catalog
@@ -415,20 +468,23 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
         <h2 className="text-xl font-semibold tracking-tight font-heading">
           Order Summary
         </h2>
-        
+
         <div className="rounded-none border bg-card/30 p-6 divide-y divide-border space-y-4">
-          <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 pb-2">
+          <div className="space-y-4 max-h-87.5 overflow-y-auto pr-2 pb-2">
             {items.map((item) => {
               // Extract original price & discount prices
               const originalPrice = Number(item.product.price);
-              const discountPrice = item.product.sale_price !== null && item.product.sale_price !== undefined 
-                ? Number(item.product.sale_price) 
-                : null;
-              const activePrice = discountPrice !== null ? discountPrice : originalPrice;
-              
+              const discountPrice =
+                item.product.sale_price !== null &&
+                item.product.sale_price !== undefined
+                  ? Number(item.product.sale_price)
+                  : null;
+              const activePrice =
+                discountPrice !== null ? discountPrice : originalPrice;
+
               return (
                 <div key={item.product.id} className="flex gap-4 items-center">
-                  <div className="relative h-14 w-14 overflow-hidden rounded-none bg-muted border flex-shrink-0">
+                  <div className="relative h-14 w-14 overflow-hidden rounded-none bg-muted border shrink-0">
                     {item.product.image_url ? (
                       <Image
                         src={item.product.image_url}
@@ -446,7 +502,9 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
                     <h4 className="font-semibold text-sm line-clamp-1 text-foreground">
                       {item.product.title}
                     </h4>
-                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Qty: {item.quantity}
+                    </p>
                     {discountPrice !== null && (
                       <span className="text-[10px] bg-red-500/10 text-red-600 font-semibold px-2 py-0.5 rounded-none border border-red-500/20 mt-1 inline-block">
                         🏷️ Discounted Sale
@@ -487,7 +545,7 @@ export function CheckoutForm({ savedAddresses, savedPayments }: CheckoutFormProp
                 Free Delivery
               </span>
             </div>
-            
+
             <div className="flex justify-between text-lg font-bold pt-3 border-t border-dashed">
               <span className="font-heading">Total Bill</span>
               <span className="text-primary text-xl">

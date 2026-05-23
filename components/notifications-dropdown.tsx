@@ -3,7 +3,18 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, BellRing, Check, CheckSquare, Package, Tag, Star, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import {
+  Bell,
+  BellRing,
+  Check,
+  CheckSquare,
+  Package,
+  Tag,
+  Star,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,20 +23,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/types/supabase";
+import { User, RealtimeChannel } from "@supabase/supabase-js";
 
 type Notification = Tables<"notifications">;
 
-export function NotificationsDropdown() {
+export function NotificationsDropdown({
+  currentUser,
+}: {
+  currentUser: User | null;
+}) {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [user, setUser] = useState<any>(null);
   const supabase = useMemo(() => createClient(), []);
 
   const fetchNotifications = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setUser(user);
+    if (!currentUser) return;
 
     const { data, error } = await supabase
       .from("notifications")
@@ -36,64 +49,148 @@ export function NotificationsDropdown() {
     if (error) {
       console.error("Error fetching notifications:", error.message || error);
     } else {
-      setNotifications(data || []);
-      setUnreadCount(data ? data.filter((n) => !n.is_read).length : 0);
+      // Merge with localStorage read-notification-ids
+      let readIds: string[] = [];
+      if (typeof window !== "undefined") {
+        const localReadString = localStorage.getItem("read-notification-ids");
+        readIds = localReadString ? JSON.parse(localReadString) : [];
+      }
+
+      const merged = (data || []).map((n) => {
+        if (readIds.includes(n.id)) {
+          return { ...n, is_read: true };
+        }
+        return n;
+      });
+
+      setNotifications(merged);
+      setUnreadCount(merged.filter((n) => !n.is_read).length);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    if (!currentUser) return;
+    const activeUser = currentUser;
+    let channel: RealtimeChannel | null = null;
 
-    // Subscribe to real-time notifications inserts/updates
-    const channel = supabase
-      .channel("realtime-notifications")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications" },
-        () => {
-          fetchNotifications();
-        }
-      )
-      .subscribe();
+    async function setupSubscription() {
+      // Fetch notifications
+      await fetchNotifications();
+
+      // Check if admin
+      const { data: adminRes } = await supabase.rpc("is_admin");
+      const userIsAdmin = !!adminRes;
+
+      // Subscribe to real-time notifications inserts/updates using a unique channel name to avoid StrictMode double-subscription errors
+      const channelId = `realtime-notifications-${Math.random().toString(36).substring(2)}`;
+      channel = supabase
+        .channel(channelId)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: userIsAdmin
+              ? "is_admin_notification=eq.true"
+              : `user_id=eq.${activeUser.id}`,
+          },
+          () => {
+            fetchNotifications();
+          },
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "notifications",
+            filter: userIsAdmin
+              ? "is_admin_notification=eq.true"
+              : `user_id=eq.${activeUser.id}`,
+          },
+          () => {
+            fetchNotifications();
+          },
+        )
+        .subscribe();
+    }
+
+    setupSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
-  }, [supabase]);
+  }, [supabase, currentUser]);
 
   const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("id", id);
 
-    if (!error) {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-      );
-      setUnreadCount((c) => Math.max(0, c - 1));
+    // Persist read state in localStorage
+    if (typeof window !== "undefined") {
+      const localReadString = localStorage.getItem("read-notification-ids");
+      const readIds: string[] = localReadString
+        ? JSON.parse(localReadString)
+        : [];
+      if (!readIds.includes(id)) {
+        readIds.push(id);
+        localStorage.setItem("read-notification-ids", JSON.stringify(readIds));
+      }
     }
+
+    // Try updating Supabase (will succeed for owned notifications)
+    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+    );
+    setUnreadCount((c) => Math.max(0, c - 1));
   };
 
   const handleMarkAllRead = async () => {
-    const { error } = await supabase
+    // Collect all notification IDs from current local state
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
+
+    if (typeof window !== "undefined" && unreadIds.length > 0) {
+      const localReadString = localStorage.getItem("read-notification-ids");
+      const readIds: string[] = localReadString
+        ? JSON.parse(localReadString)
+        : [];
+
+      unreadIds.forEach((id) => {
+        if (!readIds.includes(id)) {
+          readIds.push(id);
+        }
+      });
+      localStorage.setItem("read-notification-ids", JSON.stringify(readIds));
+    }
+
+    // Try updating in Supabase
+    await supabase
       .from("notifications")
       .update({ is_read: true })
       .eq("is_read", false);
 
-    if (!error) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-    }
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setUnreadCount(0);
   };
 
   // User reports that their order did not arrive
-  const handleReportNotArrived = async (notificationId: string, orderId: string, e: React.MouseEvent) => {
+  const handleReportNotArrived = async (
+    notificationId: string,
+    orderId: string,
+    e: React.MouseEvent,
+  ) => {
     e.stopPropagation();
     e.preventDefault();
 
-    if (!confirm("Are you sure you want to report that this order did not arrive? We will notify the administration immediately.")) {
+    if (
+      !confirm(
+        "Are you sure you want to report that this order did not arrive? We will notify the administration immediately.",
+      )
+    ) {
       return;
     }
 
@@ -109,18 +206,34 @@ export function NotificationsDropdown() {
     }
 
     // 2. Create notification for Admin
-    const { error: adminNotifError } = await supabase.from("notifications").insert({
-      title: "⚠️ Order Dispute / Non-arrival!",
-      message: `User ${user?.email} reported that order "${orderId}" did not arrive.`,
-      type: "order_reported",
-      link: `/admin/orders`,
-      is_admin_notification: true,
-    });
+    const { error: adminNotifError } = await supabase
+      .from("notifications")
+      .insert({
+        title: "⚠️ Order Dispute / Non-arrival!",
+        message: `User ${currentUser?.email} reported that order "${orderId}" did not arrive.`,
+        type: "order_reported",
+        link: `/admin/orders`,
+        is_admin_notification: true,
+      });
+
+    if (adminNotifError) {
+      console.error("Failed to notify admin of dispute:", adminNotifError);
+      alert(
+        "Failed to report non-arrival to administrators: " +
+          adminNotifError.message,
+      );
+      return;
+    }
 
     // 3. Mark the current arrival notification as read and show success
-    await supabase.from("notifications").update({ is_read: true }).eq("id", notificationId);
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notificationId);
 
-    alert("Report submitted successfully. The administration has been notified.");
+    alert(
+      "Report submitted successfully. The administration has been notified.",
+    );
     fetchNotifications();
     router.refresh();
   };
@@ -147,10 +260,10 @@ export function NotificationsDropdown() {
   const extractOrderId = (message: string) => {
     // Attempt to extract order ID from message: e.g. "Your order f6b5a3..."
     const match = message.match(/order "([^"]+)"|order ([a-f0-9-]{36})/i);
-    return match ? (match[1] || match[2]) : null;
+    return match ? match[1] || match[2] : null;
   };
 
-  if (!user) return null;
+  if (!currentUser) return null;
 
   return (
     <DropdownMenu>
@@ -191,7 +304,7 @@ export function NotificationsDropdown() {
           )}
         </div>
 
-        <div className="max-h-[350px] overflow-y-auto space-y-2 pr-1">
+        <div className="max-h-87.5 overflow-y-auto space-y-2 pr-1">
           {notifications.length === 0 ? (
             <div className="py-8 text-center text-xs text-muted-foreground">
               You have no notifications.
@@ -200,7 +313,7 @@ export function NotificationsDropdown() {
             notifications.map((n) => {
               const isArrival = n.type === "order_arrived";
               const orderId = isArrival ? extractOrderId(n.message) : null;
-              
+
               return (
                 <div
                   key={n.id}
@@ -220,7 +333,9 @@ export function NotificationsDropdown() {
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-start justify-between gap-1.5">
-                      <p className={`text-xs font-semibold ${!n.is_read ? "text-foreground" : "text-foreground/75"}`}>
+                      <p
+                        className={`text-xs font-semibold ${!n.is_read ? "text-foreground" : "text-foreground/75"}`}
+                      >
                         {n.title}
                       </p>
                       {!n.is_read && (
@@ -236,14 +351,16 @@ export function NotificationsDropdown() {
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       {n.message}
                     </p>
-                    
+
                     {/* Action buttons inside notification for disputes */}
                     {isArrival && orderId && !n.is_read && (
                       <div className="pt-2 flex gap-2">
                         <Button
                           size="xs"
                           variant="destructive"
-                          onClick={(e) => handleReportNotArrived(n.id, orderId, e)}
+                          onClick={(e) =>
+                            handleReportNotArrived(n.id, orderId, e)
+                          }
                           className="h-7 text-[10px] rounded-md px-2 py-0"
                         >
                           Report: Not Arrived ⚠️

@@ -15,11 +15,12 @@ export function SiteFooter() {
   return (
     <footer className="bg-muted">
       <div className="grid grid-cols-1 lg:grid-cols-2">
-        <div className="overflow-hidden max-lg:aspect-square">
-          <img
-            className="block size-full object-cover object-center"
-            alt=""
+        <div className="relative overflow-hidden max-lg:aspect-square">
+          <Image
             src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/clothes/Modern-Portrait-of-a-Woman-and-Man-2.png"
+            alt=""
+            fill
+            className="object-cover object-center"
           />
         </div>
         <div>
@@ -42,8 +43,7 @@ export function SiteFooter() {
                       <div
                         data-slot="input-group"
                         role="group"
-                        className="dark:bg-input/30 has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-[[data-slot][aria-invalid=true]]:border-destructive dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40 group/input-group relative flex h-9 w-full min-w-0 items-center border transition-[color,box-shadow] outline-none rounded-none border-x-0 border-t-0 !border-b border-foreground shadow-none"
-                        aria-invalid="false"
+                        className="dark:bg-input/30 has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-[[data-slot][aria-invalid=true]]:border-destructive dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40 group/input-group relative flex h-9 w-full min-w-0 items-center border transition-[color,box-shadow] outline-none rounded-none border-x-0 border-t-0 border-b! border-foreground shadow-none"
                       >
                         <Input
                           aria-invalid="false"
@@ -112,10 +112,12 @@ export function SiteFooter() {
                     href="#"
                     className="inline-flex items-center justify-center rounded-full p-2"
                   >
-                    <img
-                      className="size-6 dark:invert"
+                    <Image
+                      className="dark:invert"
                       alt="Facebook"
                       src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/facebook-icon.svg"
+                      width={24}
+                      height={24}
                     />
                   </Link>
                 </li>
@@ -124,10 +126,12 @@ export function SiteFooter() {
                     href="#"
                     className="inline-flex items-center justify-center rounded-full p-2"
                   >
-                    <img
-                      className="size-6 dark:invert"
+                    <Image
+                      className="dark:invert"
                       alt="X"
                       src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/x.svg"
+                      width={24}
+                      height={24}
                     />
                   </a>
                 </li>
@@ -136,10 +140,12 @@ export function SiteFooter() {
                     href="#"
                     className="inline-flex items-center justify-center rounded-full p-2"
                   >
-                    <img
-                      className="size-6 dark:invert"
+                    <Image
+                      className="dark:invert"
                       alt="Instagram"
                       src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/instagram-icon.svg"
+                      width={24}
+                      height={24}
                     />
                   </a>
                 </li>
@@ -286,45 +292,51 @@ export function SiteFooter() {
               <Separator />
               <ul className="flex flex-wrap items-center gap-3">
                 <li>
-                  <img
-                    className="w-9.5"
+                  <Image
                     alt="card"
                     src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/payment-methods/amazonpay.svg"
+                    width={38}
+                    height={24}
                   />
                 </li>
                 <li>
-                  <img
-                    className="w-9.5"
+                  <Image
                     alt="card"
                     src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/payment-methods/applepay.svg"
+                    width={38}
+                    height={24}
                   />
                 </li>
                 <li>
-                  <img
-                    className="w-9.5"
+                  <Image
                     alt="card"
                     src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/payment-methods/mastercard.svg"
+                    width={38}
+                    height={24}
                   />
                 </li>
                 <li>
-                  <img
-                    className="w-9.5"
+                  <Image
                     alt="card"
                     src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/payment-methods/paypal.svg"
+                    width={38}
+                    height={24}
                   />
                 </li>
                 <li>
-                  <img
-                    className="w-9.5"
+                  <Image
                     alt="card"
                     src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/payment-methods/visa.svg"
+                    width={38}
+                    height={24}
                   />
                 </li>
                 <li>
-                  <img
-                    className="w-9.5"
+                  <Image
                     alt="card"
                     src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/payment-methods/discover.svg"
+                    width={38}
+                    height={24}
                   />
                 </li>
               </ul>

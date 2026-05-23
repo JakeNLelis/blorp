@@ -81,12 +81,16 @@ export async function signup(formData: FormData) {
 
 export async function signInWithGoogle() {
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
+  const originHeader = (await headers()).get("origin");
+  const hostHeader = (await headers()).get("host");
+  const protocol = hostHeader?.includes("localhost") || hostHeader?.includes("127.0.0.1") ? "http" : "https";
+  const safeOrigin = originHeader || (hostHeader ? `${protocol}://${hostHeader}` : process.env.SITE_URL || "http://localhost:3000");
+  const redirectTo = `${safeOrigin}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo,
     },
   });
 

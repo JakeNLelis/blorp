@@ -4,10 +4,11 @@ import { checkIsAdmin } from "./actions";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CreateProductForm } from "./create-product-form";
-import { ProductList } from "./product-list";
-import { OrdersFulfillment } from "./orders-fulfillment";
+import { ProductList, Product } from "./product-list";
+import { OrdersFulfillment, Order } from "./orders-fulfillment";
+import { AdminAnalytics } from "./admin-analytics";
 import Link from "next/link";
-import { Shield, Package, Truck } from "lucide-react";
+import { Package, Truck, TrendingUp } from "lucide-react";
 
 export default async function AdminPage({
   searchParams,
@@ -16,7 +17,7 @@ export default async function AdminPage({
 }) {
   // Server-side authorization check
   const isAdmin = await checkIsAdmin();
-  
+
   if (!isAdmin) {
     redirect("/");
   }
@@ -39,9 +40,10 @@ export default async function AdminPage({
     .order("created_at", { ascending: false });
 
   // Fetch all orders with items & product details for fulfillment
-  const { data: orders } = await supabase
+  const { data: ordersData } = await supabase
     .from("orders")
-    .select(`
+    .select(
+      `
       *,
       order_items (
         id,
@@ -51,20 +53,26 @@ export default async function AdminPage({
           title
         )
       )
-    `)
+    `,
+    )
     .order("created_at", { ascending: false });
+
+  const orders: Order[] = (ordersData as unknown as Order[]) ?? [];
+  const typedProducts: Product[] = (products as unknown as Product[]) ?? [];
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <SiteHeader />
       <main className="flex-1 pt-[calc(var(--primary-nav-height)+var(--secondary-nav-height))]">
         <div className="container mx-auto max-w-6xl px-6 py-12 lg:py-20">
-          
           {/* Breadcrumb */}
           <nav aria-label="breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-muted-foreground font-sans">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/"
+                  className="hover:text-foreground transition-colors"
+                >
                   Home
                 </Link>
               </li>
@@ -76,15 +84,12 @@ export default async function AdminPage({
           {/* Dashboard Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 border-b pb-8">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Shield className="size-5 shrink-0" />
-                <span className="text-xs font-semibold uppercase tracking-wider font-sans">Administrative Access</span>
-              </div>
               <h1 className="text-3xl font-semibold tracking-tight font-heading md:text-4xl lg:text-5xl">
                 Admin Control Panel
               </h1>
               <p className="text-sm text-muted-foreground font-sans max-w-xl">
-                Supervise active listings, add new arrivals, dispatch shipped items, and resolve delivery disputes.
+                Supervise active listings, add new arrivals, dispatch shipped
+                items, and resolve delivery disputes.
               </p>
             </div>
           </div>
@@ -94,7 +99,9 @@ export default async function AdminPage({
             <Link
               href="/admin?tab=inventory"
               className={`pb-3 transition-all relative flex items-center gap-2 ${
-                tab === "inventory" ? "text-primary border-b-2 border-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+                tab === "inventory"
+                  ? "text-primary border-b-2 border-primary font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Package className="size-4" />
@@ -104,11 +111,29 @@ export default async function AdminPage({
             <Link
               href="/admin?tab=orders"
               className={`pb-3 transition-all relative flex items-center gap-2 ${
-                tab === "orders" ? "text-primary border-b-2 border-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+                tab === "orders"
+                  ? "text-primary border-b-2 border-primary font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Truck className="size-4" />
-              Fulfillment Console ({orders?.filter(o => o.status === "pending" || o.status === "reported").length || 0})
+              Fulfillment Console (
+              {orders?.filter(
+                (o) => o.status === "pending" || o.status === "reported",
+              ).length || 0}
+              )
+            </Link>
+
+            <Link
+              href="/admin?tab=analytics"
+              className={`pb-3 transition-all relative flex items-center gap-2 ${
+                tab === "analytics"
+                  ? "text-primary border-b-2 border-primary font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <TrendingUp className="size-4" />
+              Analytics & Insights
             </Link>
           </div>
 
@@ -122,15 +147,24 @@ export default async function AdminPage({
 
               {/* Products Inventory List */}
               <div className="space-y-6">
-                <ProductList products={products || []} />
+                <ProductList
+                  products={typedProducts}
+                  categories={categories || []}
+                />
               </div>
+            </div>
+          ) : tab === "orders" ? (
+            <div className="space-y-6">
+              <OrdersFulfillment orders={orders} />
             </div>
           ) : (
             <div className="space-y-6">
-              <OrdersFulfillment orders={(orders as any) || []} />
+              <AdminAnalytics
+                orders={orders}
+                products={typedProducts}
+              />
             </div>
           )}
-
         </div>
       </main>
       <SiteFooter />

@@ -17,7 +17,7 @@ export type AddressData = {
 };
 
 type PhilippineAddressCascaderProps = {
-  onChange: (address: AddressData) => void;
+  onChange: (address: AddressData | null) => void;
   disabled?: boolean;
   initialValues?: Partial<AddressData>;
 };
@@ -193,6 +193,8 @@ export function PhilippineAddressCascader({
         streetAddress,
         contactNumber,
       });
+    } else {
+      onChange(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRegion, selectedProvince, selectedCity, selectedBarangay, streetAddress, contactNumber, regions, provinces, cities, barangays]);

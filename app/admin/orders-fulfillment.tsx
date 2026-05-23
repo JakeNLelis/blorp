@@ -17,7 +17,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateOrderStatus } from "./actions";
 
-type OrderItem = {
+export interface ShippingInfo {
+  firstName: string;
+  lastName: string;
+  contactNumber: string;
+  streetAddress: string;
+  barangayName: string;
+  cityName: string;
+  provinceName: string;
+  regionName: string;
+  country: string;
+}
+
+export type OrderItem = {
   id: string;
   price: number;
   quantity: number;
@@ -26,12 +38,12 @@ type OrderItem = {
   } | null;
 };
 
-type Order = {
+export type Order = {
   id: string;
   created_at: string;
   status: string;
   total: number;
-  shipping_info: any;
+  shipping_info: ShippingInfo | null;
   order_items: OrderItem[];
 };
 
@@ -70,7 +82,17 @@ export function OrdersFulfillment({ orders }: OrdersFulfillmentProps) {
   const filteredOrders = orders.filter((order) => {
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     
-    const info = order.shipping_info || {};
+    const info: ShippingInfo = (order.shipping_info as ShippingInfo) ?? {
+      firstName: "",
+      lastName: "",
+      contactNumber: "",
+      streetAddress: "",
+      barangayName: "",
+      cityName: "",
+      provinceName: "",
+      regionName: "",
+      country: "",
+    };
     const customerName = `${info.firstName || ""} ${info.lastName || ""}`.toLowerCase();
     const orderRef = order.id.toLowerCase();
     const street = (info.streetAddress || "").toLowerCase();
@@ -185,7 +207,17 @@ export function OrdersFulfillment({ orders }: OrdersFulfillmentProps) {
       ) : (
         <div className="space-y-6">
           {filteredOrders.map((order) => {
-            const info = order.shipping_info || {};
+            const info: ShippingInfo = (order.shipping_info as ShippingInfo) ?? {
+              firstName: "",
+              lastName: "",
+              contactNumber: "",
+              streetAddress: "",
+              barangayName: "",
+              cityName: "",
+              provinceName: "",
+              regionName: "",
+              country: "",
+            };
             const customerName = `${info.firstName || "Customer"} ${info.lastName || ""}`;
             const isPending = order.status === "pending";
             const isShipped = order.status === "shipped";

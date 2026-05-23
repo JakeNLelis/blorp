@@ -110,7 +110,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       orders: {
@@ -149,6 +149,7 @@ export type Database = {
           image_url: string | null
           price: number
           sale_price: number | null
+          stock: number
           title: string
         }
         Insert: {
@@ -159,6 +160,7 @@ export type Database = {
           image_url?: string | null
           price: number
           sale_price?: number | null
+          stock?: number
           title: string
         }
         Update: {
@@ -169,6 +171,7 @@ export type Database = {
           image_url?: string | null
           price?: number
           sale_price?: number | null
+          stock?: number
           title?: string
         }
         Relationships: [
@@ -178,7 +181,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       profiles: {
@@ -231,7 +234,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       saved_addresses: {

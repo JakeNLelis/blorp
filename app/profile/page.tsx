@@ -6,13 +6,22 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/login/actions";
-import { User, Calendar, Shield, Package, ShoppingBag, ArrowRight } from "lucide-react";
+import {
+  User,
+  Calendar,
+  Shield,
+  Package,
+  ShoppingBag,
+  ArrowRight,
+} from "lucide-react";
 import { ProfileTabs } from "./profile-tabs";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
@@ -30,7 +39,8 @@ export default async function ProfilePage() {
   // Fetch order history
   const { data: ordersData, error: ordersError } = await supabase
     .from("orders")
-    .select(`
+    .select(
+      `
       id,
       created_at,
       status,
@@ -45,7 +55,8 @@ export default async function ProfilePage() {
           image_url
         )
       )
-    `)
+    `,
+    )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -74,12 +85,14 @@ export default async function ProfilePage() {
       <SiteHeader />
       <main className="flex-1 pt-[calc(var(--primary-nav-height)+var(--secondary-nav-height))]">
         <div className="container mx-auto max-w-6xl px-6 py-12 lg:py-20">
-          
           {/* Breadcrumb */}
           <nav aria-label="breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-muted-foreground font-sans">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/"
+                  className="hover:text-foreground transition-colors"
+                >
                   Home
                 </Link>
               </li>
@@ -89,7 +102,6 @@ export default async function ProfilePage() {
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-12">
-            
             {/* Left Column: User Card */}
             <div className="space-y-6">
               <div className="rounded-none border bg-card/50 p-6 space-y-6">
@@ -98,10 +110,12 @@ export default async function ProfilePage() {
                     <User className="size-8" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-medium tracking-tight font-heading break-all max-w-[240px]">
+                    <h2 className="text-xl font-medium tracking-tight font-heading break-all max-w-60">
                       {user.email}
                     </h2>
-                    <p className="text-xs text-muted-foreground font-sans mt-0.5">Customer Account</p>
+                    <p className="text-xs text-muted-foreground font-sans mt-0.5">
+                      Customer Account
+                    </p>
                   </div>
                 </div>
 
@@ -111,7 +125,12 @@ export default async function ProfilePage() {
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <Shield className="size-4 shrink-0 text-foreground/70" />
                     <span className="text-foreground font-medium uppercase tracking-wide text-xs">
-                      Role: <span className={`ml-1 px-2.5 py-0.5 rounded-none text-[10px] font-semibold border ${role === "admin" ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border"}`}>{role}</span>
+                      Role:{" "}
+                      <span
+                        className={`ml-1 px-2.5 py-0.5 rounded-none text-[10px] font-semibold border ${role === "admin" ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border"}`}
+                      >
+                        {role}
+                      </span>
                     </span>
                   </div>
 
@@ -125,7 +144,10 @@ export default async function ProfilePage() {
 
                 <div className="space-y-2">
                   {role === "admin" && (
-                    <Button className="w-full rounded-md font-sans justify-between" asChild>
+                    <Button
+                      className="w-full rounded-md font-sans justify-between"
+                      asChild
+                    >
                       <Link href="/admin">
                         Admin Control Panel
                         <ArrowRight className="size-4" />
@@ -133,7 +155,11 @@ export default async function ProfilePage() {
                     </Button>
                   )}
                   <form action={signOut} className="w-full">
-                    <Button type="submit" variant="outline" className="w-full rounded-md font-sans border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30">
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      className="w-full rounded-md font-sans border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                    >
                       Sign Out
                     </Button>
                   </form>
@@ -148,7 +174,8 @@ export default async function ProfilePage() {
                   My Dashboard
                 </h1>
                 <p className="text-sm text-muted-foreground font-sans">
-                  Manage your order history, shipping addresses, and saved payment details.
+                  Manage your order history, shipping addresses, and saved
+                  payment details.
                 </p>
               </div>
 
@@ -166,7 +193,6 @@ export default async function ProfilePage() {
                 />
               )}
             </div>
-
           </div>
         </div>
       </main>

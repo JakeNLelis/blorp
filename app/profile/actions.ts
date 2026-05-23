@@ -3,7 +3,21 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function saveAddress(addressData: any) {
+export interface SaveAddressData {
+  contactNumber: string;
+  regionName: string;
+  regionCode: string;
+  provinceName: string;
+  provinceCode: string;
+  cityName: string;
+  cityCode: string;
+  barangayName: string;
+  barangayCode: string;
+  streetAddress: string;
+  isDefault?: boolean;
+}
+
+export async function saveAddress(addressData: SaveAddressData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {

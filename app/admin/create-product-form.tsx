@@ -5,7 +5,18 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createProduct } from "./actions";
-import { Loader2, Plus, Upload, Link as LinkIcon, DollarSign, Tag, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Upload,
+  Link as LinkIcon,
+  DollarSign,
+  Tag,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  Package,
+} from "lucide-react";
 
 type Category = {
   id: string;
@@ -22,7 +33,7 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  
+
   // Image type selection: 'file' or 'url'
   const [imageType, setImageType] = useState<"file" | "url">("file");
   const [imageUrl, setImageUrl] = useState("");
@@ -45,7 +56,7 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
     setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
-    
+
     // Clear out the alternative image input if it wasn't selected to prevent mixed state
     if (imageType === "file" && imageFile) {
       formData.set("imageUrl", "");
@@ -57,9 +68,9 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
 
     try {
       const result = await createProduct(null, formData);
-      if (result?.error) {
+      if (result && "error" in result) {
         setError(result.error);
-      } else {
+      } else if (result && "success" in result) {
         setSuccess(true);
         setImageFile(null);
         setPreviewUrl(null);
@@ -79,7 +90,9 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
   return (
     <div className="rounded-none border bg-card/10 p-6 space-y-6">
       <div className="space-y-1">
-        <h3 className="text-xl font-medium tracking-tight font-heading">Add New Product</h3>
+        <h3 className="text-xl font-medium tracking-tight font-heading">
+          Add New Product
+        </h3>
         <p className="text-sm text-muted-foreground font-sans">
           Upload products directly to the store inventory.
         </p>
@@ -108,10 +121,12 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5 font-sans">
-        
         {/* Title */}
         <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2" htmlFor="title">
+          <label
+            className="text-sm font-medium flex items-center gap-2"
+            htmlFor="title"
+          >
             <FileText className="size-4 text-muted-foreground" />
             Product Title
           </label>
@@ -127,7 +142,10 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
 
         {/* Description */}
         <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2" htmlFor="description">
+          <label
+            className="text-sm font-medium flex items-center gap-2"
+            htmlFor="description"
+          >
             <FileText className="size-4 text-muted-foreground" />
             Product Description
           </label>
@@ -135,17 +153,20 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
             id="description"
             name="description"
             rows={4}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Describe the product details, materials, dimensions..."
             disabled={loading}
           />
         </div>
 
         {/* Price & Category Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {/* Price */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2" htmlFor="price">
+            <label
+              className="text-sm font-medium flex items-center gap-2"
+              htmlFor="price"
+            >
               <span className="text-muted-foreground font-semibold">₱</span>
               Price (PHP)
             </label>
@@ -164,7 +185,10 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
 
           {/* Sale Price */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2" htmlFor="salePrice">
+            <label
+              className="text-sm font-medium flex items-center gap-2"
+              htmlFor="salePrice"
+            >
               <Tag className="size-4 text-muted-foreground" />
               Sale Price (PHP)
             </label>
@@ -180,9 +204,33 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
             />
           </div>
 
+          {/* Stock */}
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium flex items-center gap-2"
+              htmlFor="stock"
+            >
+              <Package className="size-4 text-muted-foreground" />
+              Initial Stock
+            </label>
+            <Input
+              id="stock"
+              name="stock"
+              type="number"
+              min="0"
+              defaultValue="50"
+              required
+              className="rounded-md"
+              disabled={loading}
+            />
+          </div>
+
           {/* Category */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2" htmlFor="categoryId">
+            <label
+              className="text-sm font-medium flex items-center gap-2"
+              htmlFor="categoryId"
+            >
               <Tag className="size-4 text-muted-foreground" />
               Category
             </label>
@@ -215,7 +263,9 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
                   setError(null);
                 }}
                 className={`px-3 py-1 rounded-md transition-all ${
-                  imageType === "file" ? "bg-background text-foreground shadow-sm font-medium" : "text-muted-foreground"
+                  imageType === "file"
+                    ? "bg-background text-foreground shadow-sm font-medium"
+                    : "text-muted-foreground"
                 }`}
               >
                 Upload File
@@ -227,7 +277,9 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
                   setError(null);
                 }}
                 className={`px-3 py-1 rounded-md transition-all ${
-                  imageType === "url" ? "bg-background text-foreground shadow-sm font-medium" : "text-muted-foreground"
+                  imageType === "url"
+                    ? "bg-background text-foreground shadow-sm font-medium"
+                    : "text-muted-foreground"
                 }`}
               >
                 External URL
@@ -241,8 +293,12 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
                 <label className="flex flex-col items-center justify-center w-full h-36 border border-dashed rounded-none cursor-pointer hover:bg-muted/10 transition-colors border-border relative">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
                     <Upload className="size-8 text-muted-foreground mb-2" />
-                    <p className="text-xs font-semibold text-muted-foreground">Click to upload image</p>
-                    <p className="text-[10px] text-muted-foreground/70 mt-1">PNG, JPG, JPEG, GIF up to 5MB</p>
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Click to upload image
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/70 mt-1">
+                      PNG, JPG, JPEG, GIF up to 5MB
+                    </p>
                   </div>
                   <input
                     id="imageFile"
@@ -257,7 +313,7 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
               </div>
 
               {previewUrl && (
-                <div className="relative aspect-video w-full max-w-[200px] mx-auto rounded-none overflow-hidden border bg-muted">
+                <div className="relative aspect-video w-full max-w-50 mx-auto rounded-none overflow-hidden border bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={previewUrl}
@@ -296,13 +352,17 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
               </div>
 
               {imageUrl && (
-                <div className="relative aspect-video w-full max-w-[200px] mx-auto rounded-none overflow-hidden border bg-muted">
+                <div className="relative aspect-video w-full max-w-50 mx-auto rounded-none overflow-hidden border bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imageUrl}
                     alt="URL Preview"
                     className="object-cover w-full h-full"
-                    onError={() => setError("Failed to load image preview from URL. Make sure it is a valid direct link.")}
+                    onError={() =>
+                      setError(
+                        "Failed to load image preview from URL. Make sure it is a valid direct link.",
+                      )
+                    }
                   />
                 </div>
               )}

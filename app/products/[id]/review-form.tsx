@@ -43,9 +43,14 @@ export function ReviewForm({ productId }: ReviewFormProps) {
   return (
     <div className="rounded-none border bg-card/45 p-6 space-y-6 max-w-xl font-sans">
       <div className="space-y-1.5">
-        <h3 className="text-xl font-medium tracking-tight font-heading">Write a Review</h3>
+        <h3 className="text-xl font-medium tracking-tight font-heading">
+          Write a Review
+        </h3>
         <p className="text-xs text-muted-foreground">
-          Share your experience with this product. Since you purchased this product, your review will carry a <span className="text-emerald-500 font-semibold">Verified Buyer</span> badge.
+          Share your experience with this product. Since you purchased this
+          product, your review will carry a{" "}
+          <span className="text-emerald-500 font-semibold">Verified Buyer</span>{" "}
+          badge.
         </p>
       </div>
 
@@ -80,11 +85,13 @@ export function ReviewForm({ productId }: ReviewFormProps) {
               <button
                 key={val}
                 type="button"
-                className="p-1 hover:scale-110 transition-transform focus:outline-none"
+                className="p-1 hover:scale-110 transition-transform rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
                 onClick={() => setRating(val)}
                 onMouseEnter={() => setHoverRating(val)}
                 onMouseLeave={() => setHoverRating(null)}
                 disabled={loading}
+                aria-label={`Set rating to ${val} stars`}
+                aria-pressed={rating === val}
               >
                 <Star
                   className={`size-7 transition-colors ${
@@ -108,7 +115,7 @@ export function ReviewForm({ productId }: ReviewFormProps) {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="What did you think of the design, texture, and overall quality?"
             disabled={loading}
           />

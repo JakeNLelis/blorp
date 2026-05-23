@@ -27,16 +27,18 @@ export const useCartStore = create<CartState>()(
           const existingItem = state.items.find((item) => item.product.id === product.id);
 
           if (existingItem) {
+            const finalQty = Math.min(product.stock ?? 50, existingItem.quantity + sanitizedQuantity);
             return {
               items: state.items.map((item) =>
                 item.product.id === product.id
-                  ? { ...item, quantity: item.quantity + sanitizedQuantity }
+                  ? { ...item, quantity: finalQty }
                   : item
               ),
             };
           }
 
-          return { items: [...state.items, { product, quantity: sanitizedQuantity }] };
+          const finalQty = Math.min(product.stock ?? 50, sanitizedQuantity);
+          return { items: [...state.items, { product, quantity: finalQty }] };
         });
       },
       removeItem: (productId) => {
@@ -48,7 +50,9 @@ export const useCartStore = create<CartState>()(
         const sanitizedQuantity = Math.max(1, Math.floor(Number.isFinite(quantity) ? quantity : 1));
         set((state) => ({
           items: state.items.map((item) =>
-            item.product.id === productId ? { ...item, quantity: sanitizedQuantity } : item
+            item.product.id === productId 
+              ? { ...item, quantity: Math.min(item.product.stock ?? 50, sanitizedQuantity) } 
+              : item
           ),
         }));
       },
@@ -57,10 +61,12 @@ export const useCartStore = create<CartState>()(
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
       totalPrice: () => {
-        return get().items.reduce(
-          (total, item) => total + item.product.price * item.quantity,
-          0
-        );
+        return get().items.reduce((total, item) => {
+          const price = item.product.sale_price !== null && item.product.sale_price !== undefined
+            ? Number(item.product.sale_price)
+            : Number(item.product.price);
+          return total + price * item.quantity;
+        }, 0);
       },
     }),
     {

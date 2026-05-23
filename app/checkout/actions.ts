@@ -34,7 +34,6 @@ export async function placeOrder(formData: FormData, cartItems: { product: Table
   // Payment inputs
   const cardholderName = formData.get('cardholderName') as string;
   const paymentMethodToken = formData.get('paymentMethodToken') as string | null;
-  const last4 = formData.get('last4') as string | null;
   const cardNumber = formData.get('cardNumber') as string | null;
   const expiryDate = formData.get('expiryDate') as string;
   const cvv = formData.get('cvv') as string;
@@ -132,7 +131,10 @@ export async function placeOrder(formData: FormData, cartItems: { product: Table
   }));
 
   const { data: order, error: orderError } = await supabase
-    .rpc('create_order_with_items', { order: orderPayload, items: orderItemsData }) as { data: any, error: any };
+    .rpc('create_order_with_items', { order: orderPayload, items: orderItemsData }) as {
+      data: { id: string } | null;
+      error: { message: string } | null;
+    };
 
   if (orderError || !order) {
     console.error('Error creating order with items:', orderError)
