@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { checkIsAdmin } from "./actions";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { CreateProductForm } from "./create-product-form";
+
 import { ProductList, Product } from "./product-list";
 import { OrdersFulfillment, Order } from "./orders-fulfillment";
 import { AdminAnalytics } from "./admin-analytics";
@@ -50,6 +50,7 @@ export default async function AdminPage({
         price,
         quantity,
         products (
+          id,
           title
         )
       )
@@ -139,19 +140,11 @@ export default async function AdminPage({
 
           {/* Core Dashboard Tabs Grid */}
           {tab === "inventory" ? (
-            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-12 items-start">
-              {/* Create Product Form */}
-              <div className="space-y-6">
-                <CreateProductForm categories={categories || []} />
-              </div>
-
-              {/* Products Inventory List */}
-              <div className="space-y-6">
-                <ProductList
-                  products={typedProducts}
-                  categories={categories || []}
-                />
-              </div>
+            <div className="space-y-6">
+              <ProductList
+                categories={categories || []}
+                products={typedProducts}
+              />
             </div>
           ) : tab === "orders" ? (
             <div className="space-y-6">

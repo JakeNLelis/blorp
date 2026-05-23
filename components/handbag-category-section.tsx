@@ -10,7 +10,7 @@ export function HandbagCategorySection() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-700"
             style={{
               backgroundImage:
-                'url("https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=1600&auto=format&fit=crop")',
+                'url("https://www.whatgoesaroundnyc.com/on/demandware.static/-/Sites-storefront-catalog-wgaca/default/dw3de909d8/14_Multibrand__1.jpg")',
             }}
           />
           <div className="relative z-10 container mx-auto px-8 md:px-16 flex min-h-95 flex-col justify-between py-12">
@@ -45,8 +45,6 @@ export function HandbagCategorySection() {
                   >
                     <span
                       data-slot="breadcrumb-page"
-                      role="link"
-                      aria-disabled="true"
                       aria-current="page"
                       className="font-normal text-white/90 font-sans"
                     >

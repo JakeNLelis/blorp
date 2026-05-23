@@ -326,23 +326,43 @@ export function CheckoutForm({
               </select>
 
               {selectedPaymentId !== "custom" && (
-                <div className="mt-3 p-4 rounded-none border bg-card/60 text-sm text-muted-foreground relative overflow-hidden flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="size-5 text-indigo-600 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {savedPayments.find((c) => c.id === selectedPaymentId)
-                          ?.card_brand || "Card"}{" "}
-                        ending in {last4}
-                      </p>
-                      <p className="text-xs">
-                        Holder: {cardholderName} | Expiry: {expiryDate}
-                      </p>
+                <div className="space-y-3 mt-3">
+                  <div className="p-4 rounded-none border bg-card/60 text-sm text-muted-foreground relative overflow-hidden flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <CreditCard className="size-5 text-indigo-600 shrink-0" />
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {savedPayments.find((c) => c.id === selectedPaymentId)
+                            ?.card_brand || "Card"}{" "}
+                          ending in {last4}
+                        </p>
+                        <p className="text-xs">
+                          Holder: {cardholderName} | Expiry: {expiryDate}
+                        </p>
+                      </div>
                     </div>
+                    <span className="text-[10px] bg-indigo-500/10 text-indigo-600 font-semibold px-2.5 py-0.5 rounded-none border border-indigo-500/20">
+                      Auto-approved Mock
+                    </span>
                   </div>
-                  <span className="text-[10px] bg-indigo-500/10 text-indigo-600 font-semibold px-2.5 py-0.5 rounded-none border border-indigo-500/20">
-                    Auto-approved Mock
-                  </span>
+
+                  <div className="p-4 rounded-none border bg-card/25 space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
+                      Confirm CVV / CVC (3-4 Digits)
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="•••"
+                      value={cvv}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        setCvv(val);
+                      }}
+                      required
+                      disabled={isPending}
+                      className="max-w-[120px]"
+                    />
+                  </div>
                 </div>
               )}
             </div>

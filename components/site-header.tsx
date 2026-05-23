@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Sun,
   Moon,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -192,49 +193,90 @@ function MobileMenuSheet({
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation Menu</SheetTitle>
           </SheetHeader>
-          <div className="flex flex-col gap-4">
-            <Button variant="secondary" className="w-full justify-start">
-              <LayoutGrid className="size-4 text-foreground/70" />
-              Categories
-            </Button>
+          <div className="flex flex-col gap-5 py-2 overflow-y-auto max-h-[80vh] pr-1">
+            {/* Main Pages */}
             <div className="flex flex-col gap-2">
-              <Button variant="ghost" className="justify-start">
-                <Heart className="size-4" />
-                Wishlist
+              <Button variant="ghost" className="justify-start text-base font-semibold" asChild>
+                <Link href="/products">
+                  <LayoutGrid className="size-4 mr-2 text-foreground/75" />
+                  Shop All Products
+                </Link>
+              </Button>
+              <Button variant="ghost" className="justify-start text-base font-semibold text-destructive hover:text-destructive" asChild>
+                <Link href="/products?sale=true">
+                  <Tag className="size-4 mr-2" />
+                  Sale 🏷️
+                </Link>
+              </Button>
+            </div>
+
+            <hr className="border-border/60" />
+
+            {/* Quick Links */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase px-2.5 mb-1 block">
+                Explore Blorp
+              </label>
+              <Button variant="ghost" className="justify-start text-sm h-9" asChild>
+                <Link href="#">Skin Quiz</Link>
+              </Button>
+              <Button variant="ghost" className="justify-start text-sm h-9" asChild>
+                <Link href="#">About Us</Link>
+              </Button>
+              <Button variant="ghost" className="justify-start text-sm h-9" asChild>
+                <Link href="#">Blog</Link>
+              </Button>
+              <Button variant="ghost" className="justify-start text-sm h-9" asChild>
+                <Link href="#">Help &amp; Support</Link>
+              </Button>
+            </div>
+
+            <hr className="border-border/60" />
+
+            {/* Account & Wishlist */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase px-2.5 mb-1 block">
+                My Account
+              </label>
+              <Button variant="ghost" className="justify-start text-sm h-9" asChild>
+                <Link href="#">
+                  <Heart className="size-4 mr-2 text-muted-foreground" />
+                  Wishlist
+                </Link>
               </Button>
               {user ? (
                 <>
                   {role === "admin" && (
                     <Button
                       variant="ghost"
-                      className="justify-start font-sans"
+                      className="justify-start text-sm h-9 font-sans"
                       asChild
                     >
                       <Link href="/admin">
-                        <LayoutGrid className="size-4 mr-2" />
+                        <LayoutGrid className="size-4 mr-2 text-muted-foreground" />
                         Admin Panel
                       </Link>
                     </Button>
                   )}
                   <Button
                     variant="ghost"
-                    className="justify-start font-sans"
+                    className="justify-start text-sm h-9 font-sans"
                     asChild
                   >
                     <Link href="/profile">
-                      <UserIcon className="size-4 mr-2" />
-                      Account
+                      <UserIcon className="size-4 mr-2 text-muted-foreground" />
+                      Account Details
                     </Link>
                   </Button>
                 </>
               ) : (
                 <Button
                   variant="ghost"
-                  className="justify-start font-sans"
+                  className="justify-start text-sm h-9 font-sans"
                   asChild
                 >
                   <Link href="/login">
-                    <UserIcon className="size-4 mr-2" />
+                    <UserIcon className="size-4 mr-2 text-muted-foreground" />
                     Log in
                   </Link>
                 </Button>

@@ -23,11 +23,15 @@ export const useCartStore = create<CartState>()(
       items: [],
       addItem: (product, quantity = 1) => {
         const sanitizedQuantity = Math.max(1, Math.floor(Number.isFinite(quantity) ? quantity : 1));
+        const limitStock = product.stock ?? 0;
         set((state) => {
           const existingItem = state.items.find((item) => item.product.id === product.id);
 
           if (existingItem) {
-            const finalQty = Math.min(product.stock ?? 50, existingItem.quantity + sanitizedQuantity);
+            const finalQty = Math.min(limitStock, existingItem.quantity + sanitizedQuantity);
+            if (finalQty <= 0) {
+              return state;
+            }
             return {
               items: state.items.map((item) =>
                 item.product.id === product.id
@@ -37,7 +41,10 @@ export const useCartStore = create<CartState>()(
             };
           }
 
-          const finalQty = Math.min(product.stock ?? 50, sanitizedQuantity);
+          const finalQty = Math.min(limitStock, sanitizedQuantity);
+          if (finalQty <= 0) {
+            return state;
+          }
           return { items: [...state.items, { product, quantity: finalQty }] };
         });
       },
@@ -48,13 +55,27 @@ export const useCartStore = create<CartState>()(
       },
       updateQuantity: (productId, quantity) => {
         const sanitizedQuantity = Math.max(1, Math.floor(Number.isFinite(quantity) ? quantity : 1));
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.product.id === productId 
-              ? { ...item, quantity: Math.min(item.product.stock ?? 50, sanitizedQuantity) } 
-              : item
-          ),
-        }));
+        set((state) => {
+          const itemToUpdate = state.items.find((item) => item.product.id === productId);
+          if (!itemToUpdate) return state;
+
+          const limitStock = itemToUpdate.product.stock ?? 0;
+          const finalQty = Math.min(limitStock, sanitizedQuantity);
+
+          if (finalQty <= 0) {
+            return {
+              items: state.items.filter((item) => item.product.id !== productId),
+            };
+          }
+
+          return {
+            items: state.items.map((item) =>
+              item.product.id === productId 
+                ? { ...item, quantity: finalQty } 
+                : item
+            ),
+          };
+        });
       },
       clearCart: () => set({ items: [] }),
       totalItems: () => {

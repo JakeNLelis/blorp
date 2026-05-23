@@ -64,12 +64,14 @@ export default async function ProfilePage() {
   const { data: addresses } = await supabase
     .from("saved_addresses")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   // Fetch saved payments
   const { data: payments } = await supabase
     .from("saved_payments")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   const formatDate = (dateString: string) => {

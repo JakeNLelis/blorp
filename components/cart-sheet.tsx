@@ -171,7 +171,11 @@ export function CartSheet() {
                           onClick={() =>
                             updateQuantity(item.product.id, item.quantity + 1)
                           }
-                          disabled={item.quantity >= (item.product.stock ?? 50)}
+                          disabled={
+                            item.product.stock === null ||
+                            item.product.stock === undefined ||
+                            item.quantity >= (item.product.stock ?? 0)
+                          }
                           aria-label="Increase quantity"
                         >
                           <Plus className="h-3 w-3" aria-hidden="true" />

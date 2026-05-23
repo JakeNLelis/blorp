@@ -9,24 +9,28 @@ import { createClient } from "@/utils/supabase/server";
 export default async function Home() {
   const supabase = await createClient();
 
-  // Fetch recent products for the Hero Section
-  const { data: recentProducts } = await supabase
+  // Fetch all products with their categories
+  const { data: allProducts, error: productsError } = await supabase
     .from("products")
     .select("*, categories(name, slug)")
-    .order("created_at", { ascending: false })
-    .limit(5);
+    .order("created_at", { ascending: false });
+
+  if (productsError) {
+    console.error("Error fetching products on home page:", productsError.message || productsError);
+  }
 
   // Fetch all categories
-  const { data: categoriesData } = await supabase
+  const { data: categoriesData, error: categoriesError } = await supabase
     .from("categories")
     .select("*")
     .order("name", { ascending: true });
 
-  // Fetch products to pick representative ones
-  const { data: productsData } = await supabase
-    .from("products")
-    .select("*, categories(name, slug)")
-    .order("created_at", { ascending: false });
+  if (categoriesError) {
+    console.error("Error fetching categories on home page:", categoriesError.message || categoriesError);
+  }
+
+  // Derive recent products for the Hero Section
+  const recentProducts = allProducts ? allProducts.slice(0, 5) : [];
 
   // Map category slugs to descriptions
   const categoryDescriptions: Record<string, string> = {
@@ -41,7 +45,7 @@ export default async function Home() {
   // Build the list of categories with representative products and descriptions
   const categories = (categoriesData || []).map((cat) => {
     // Find first product in this category
-    const repProd = (productsData || []).find((p) => p.category_id === cat.id);
+    const repProd = (allProducts || []).find((p) => p.category_id === cat.id);
     return {
       id: cat.id,
       title: cat.name,

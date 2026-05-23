@@ -72,9 +72,9 @@ export function HeroCarousel({ products }: HeroCarouselProps) {
   const slides =
     products.length > 0
       ? products.map((product) => {
-          const categoryName = Array.isArray(product.categories)
+          const categoryName = (Array.isArray(product.categories)
             ? product.categories[0]?.name
-            : product.categories?.name || "Premium Collection";
+            : product.categories?.name) || "Premium Collection";
           const activePrice =
             product.sale_price !== null ? product.sale_price : product.price;
 

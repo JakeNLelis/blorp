@@ -31,6 +31,7 @@ export function InfiniteScrollProducts({
   const [offset, setOffset] = useState(initialProducts.length);
   const [hasMore, setHasMore] = useState(initialProducts.length >= 20);
   const [loading, setLoading] = useState(false);
+  const isFetchingRef = useRef(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // Sync state when initial products change (e.g. user toggles category filter)
@@ -38,12 +39,14 @@ export function InfiniteScrollProducts({
     setProducts(initialProducts);
     setOffset(initialProducts.length);
     setHasMore(initialProducts.length >= 20);
+    isFetchingRef.current = false;
   }, [initialProducts]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       async (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
+        if (entries[0].isIntersecting && hasMore && !loading && !isFetchingRef.current) {
+          isFetchingRef.current = true;
           setLoading(true);
           try {
             const nextProducts = await fetchPaginatedProducts({
@@ -64,6 +67,7 @@ export function InfiniteScrollProducts({
             console.error("Failed to load more products:", err);
           } finally {
             setLoading(false);
+            isFetchingRef.current = false;
           }
         }
       },

@@ -27,6 +27,16 @@ import { User, RealtimeChannel } from "@supabase/supabase-js";
 
 type Notification = Tables<"notifications">;
 
+const safeParseJson = (str: string | null): string[] => {
+  if (!str) return [];
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    console.error("Failed to parse read notification IDs from localStorage:", e);
+    return [];
+  }
+};
+
 export function NotificationsDropdown({
   currentUser,
 }: {
@@ -53,7 +63,7 @@ export function NotificationsDropdown({
       let readIds: string[] = [];
       if (typeof window !== "undefined") {
         const localReadString = localStorage.getItem("read-notification-ids");
-        readIds = localReadString ? JSON.parse(localReadString) : [];
+        readIds = safeParseJson(localReadString);
       }
 
       const merged = (data || []).map((n) => {
@@ -131,9 +141,7 @@ export function NotificationsDropdown({
     // Persist read state in localStorage
     if (typeof window !== "undefined") {
       const localReadString = localStorage.getItem("read-notification-ids");
-      const readIds: string[] = localReadString
-        ? JSON.parse(localReadString)
-        : [];
+      const readIds: string[] = safeParseJson(localReadString);
       if (!readIds.includes(id)) {
         readIds.push(id);
         localStorage.setItem("read-notification-ids", JSON.stringify(readIds));
@@ -155,9 +163,7 @@ export function NotificationsDropdown({
 
     if (typeof window !== "undefined" && unreadIds.length > 0) {
       const localReadString = localStorage.getItem("read-notification-ids");
-      const readIds: string[] = localReadString
-        ? JSON.parse(localReadString)
-        : [];
+      const readIds: string[] = safeParseJson(localReadString);
 
       unreadIds.forEach((id) => {
         if (!readIds.includes(id)) {
@@ -167,11 +173,24 @@ export function NotificationsDropdown({
       localStorage.setItem("read-notification-ids", JSON.stringify(readIds));
     }
 
-    // Try updating in Supabase
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("is_read", false);
+    // Try updating in Supabase with defence-in-depth filters
+    if (currentUser) {
+      const { data: adminRes } = await supabase.rpc("is_admin");
+      const userIsAdmin = !!adminRes;
+
+      let query = supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("is_read", false);
+
+      if (userIsAdmin) {
+        query = query.or(`user_id.eq.${currentUser.id},is_admin_notification.eq.true`);
+      } else {
+        query = query.eq("user_id", currentUser.id);
+      }
+
+      await query;
+    }
 
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     setUnreadCount(0);

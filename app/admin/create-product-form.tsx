@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,9 +26,10 @@ type Category = {
 
 type CreateProductFormProps = {
   categories: Category[];
+  onClose?: () => void;
 };
 
-export function CreateProductForm({ categories }: CreateProductFormProps) {
+export function CreateProductForm({ categories, onClose }: CreateProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,9 +41,20 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -78,6 +90,11 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
         // Reset form
         (e.target as HTMLFormElement).reset();
         router.refresh();
+        if (onClose) {
+          setTimeout(() => {
+            onClose();
+          }, 1000);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -88,15 +105,17 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
   };
 
   return (
-    <div className="rounded-none border bg-card/10 p-6 space-y-6">
-      <div className="space-y-1">
-        <h3 className="text-xl font-medium tracking-tight font-heading">
-          Add New Product
-        </h3>
-        <p className="text-sm text-muted-foreground font-sans">
-          Upload products directly to the store inventory.
-        </p>
-      </div>
+    <div className={onClose ? "space-y-6" : "rounded-none border bg-card/10 p-6 space-y-6"}>
+      {!onClose && (
+        <div className="space-y-1">
+          <h3 className="text-xl font-medium tracking-tight font-heading">
+            Add New Product
+          </h3>
+          <p className="text-sm text-muted-foreground font-sans">
+            Upload products directly to the store inventory.
+          </p>
+        </div>
+      )}
 
       {success && (
         <div className="flex items-start gap-3 rounded-none border border-emerald-500/20 bg-emerald-500/5 p-4 text-emerald-600 font-sans text-sm">
@@ -370,23 +389,36 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
           )}
         </div>
 
-        <Button
-          type="submit"
-          className="w-full h-11 rounded-md justify-center"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Saving Product...
-            </>
-          ) : (
-            <>
-              <Plus className="mr-2 size-4" />
-              Add Product
-            </>
+        <div className="flex gap-3 justify-end pt-4 border-t">
+          {onClose && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+              className="rounded-md h-11 px-4"
+            >
+              Cancel
+            </Button>
           )}
-        </Button>
+          <Button
+            type="submit"
+            className={`${onClose ? "px-6" : "w-full"} h-11 rounded-md justify-center`}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Saving Product...
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 size-4" />
+                Add Product
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </div>
   );

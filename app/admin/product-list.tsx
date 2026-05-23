@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { deleteProduct, updateProduct, CreateProductState } from "./actions";
+import { CreateProductForm } from "./create-product-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
+  Plus,
 } from "lucide-react";
 
 type CategoryItem = {
@@ -59,6 +61,15 @@ export function ProductList({ products, categories }: ProductListProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const filteredProducts = products.filter((product) =>
     product.title.toLowerCase().includes(search.toLowerCase()),
@@ -107,9 +118,21 @@ export function ProductList({ products, categories }: ProductListProps) {
     setEditSuccess(false);
   };
 
+  const closeEditModal = () => {
+    if (previewUrl && previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setEditingProduct(null);
+    setPreviewUrl(null);
+    setImageFile(null);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -142,7 +165,7 @@ export function ProductList({ products, categories }: ProductListProps) {
       } else if (result && "success" in result) {
         setEditSuccess(true);
         setTimeout(() => {
-          setEditingProduct(null);
+          closeEditModal();
           router.refresh();
         }, 1000);
       }
@@ -173,15 +196,25 @@ export function ProductList({ products, categories }: ProductListProps) {
           </p>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full sm:max-w-60">
-          <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 font-sans border-border rounded-md h-10 bg-background/50"
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:max-w-max shrink-0 sm:items-center">
+          {/* Search */}
+          <div className="relative w-full sm:w-60">
+            <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 font-sans border-border rounded-md h-10 bg-background/50"
+            />
+          </div>
+
+          <Button
+            onClick={() => setIsAddOpen(true)}
+            className="rounded-md h-10 px-4 font-sans font-semibold flex items-center gap-2 shrink-0 cursor-pointer text-sm"
+          >
+            <Plus className="size-4" />
+            Add Product
+          </Button>
         </div>
       </div>
 
@@ -330,7 +363,7 @@ export function ProductList({ products, categories }: ProductListProps) {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-background text-foreground border rounded-none p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 relative font-sans">
             <button
-              onClick={() => setEditingProduct(null)}
+              onClick={closeEditModal}
               className="absolute right-4 top-4 p-1.5 hover:scale-105 hover:bg-muted transition-all rounded-md text-muted-foreground hover:text-foreground"
               aria-label="Close dialog"
             >
@@ -343,7 +376,7 @@ export function ProductList({ products, categories }: ProductListProps) {
                 Edit Product
               </h3>
               <p className="text-xs text-muted-foreground">
-                Update details for listing "{editingProduct.title}" (ID:{" "}
+                Update details for listing &quot;{editingProduct.title}&quot; (ID:{" "}
                 {editingProduct.id.substring(0, 8)}...).
               </p>
             </div>
@@ -616,7 +649,7 @@ export function ProductList({ products, categories }: ProductListProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setEditingProduct(null)}
+                  onClick={closeEditModal}
                   disabled={editLoading}
                   className="rounded-md h-10 px-4"
                 >
@@ -638,6 +671,36 @@ export function ProductList({ products, categories }: ProductListProps) {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Product Dialog */}
+      {isAddOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-background text-foreground border rounded-none p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 relative font-sans">
+            <button
+              onClick={() => setIsAddOpen(false)}
+              className="absolute right-4 top-4 p-1.5 hover:scale-105 hover:bg-muted transition-all rounded-md text-muted-foreground hover:text-foreground cursor-pointer"
+              aria-label="Close dialog"
+            >
+              <X className="size-5" />
+            </button>
+
+            <div className="space-y-1.5">
+              <h3 className="text-2xl font-medium tracking-tight font-heading flex items-center gap-2">
+                <Plus className="size-5 text-primary" />
+                Add New Product
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Create a new active listing in Blorp Atelier's catalog.
+              </p>
+            </div>
+
+            <CreateProductForm
+              categories={categories}
+              onClose={() => setIsAddOpen(false)}
+            />
           </div>
         </div>
       )}

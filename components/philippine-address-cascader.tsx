@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
 
 export type AddressData = {
@@ -112,11 +112,6 @@ export function PhilippineAddressCascader({
       }
     }
 
-    // Skip province fetch if we are loading initial values and the initial values already have the province/city loaded
-    if (initialValues.provinceCode && provinces.length === 0 && !provinces.some(p => p.code === initialValues.provinceCode)) {
-      // Allow initial mount loading
-    }
-
     loadProvinces();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRegion]);
@@ -199,14 +194,41 @@ export function PhilippineAddressCascader({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRegion, selectedProvince, selectedCity, selectedBarangay, streetAddress, contactNumber, regions, provinces, cities, barangays]);
 
+  const initialApplied = useRef(false);
+
   // Handles setting initialValues on load if provided
   useEffect(() => {
-    if (initialValues.regionCode) setSelectedRegion(initialValues.regionCode);
-    if (initialValues.provinceCode) setSelectedProvince(initialValues.provinceCode);
-    if (initialValues.cityCode) setSelectedCity(initialValues.cityCode);
-    if (initialValues.barangayCode) setSelectedBarangay(initialValues.barangayCode);
-    if (initialValues.streetAddress) setStreetAddress(initialValues.streetAddress);
-    if (initialValues.contactNumber) setContactNumber(initialValues.contactNumber);
+    if (initialApplied.current) return;
+
+    let applied = false;
+    if (initialValues.regionCode) {
+      setSelectedRegion(initialValues.regionCode);
+      applied = true;
+    }
+    if (initialValues.provinceCode) {
+      setSelectedProvince(initialValues.provinceCode);
+      applied = true;
+    }
+    if (initialValues.cityCode) {
+      setSelectedCity(initialValues.cityCode);
+      applied = true;
+    }
+    if (initialValues.barangayCode) {
+      setSelectedBarangay(initialValues.barangayCode);
+      applied = true;
+    }
+    if (initialValues.streetAddress) {
+      setStreetAddress(initialValues.streetAddress);
+      applied = true;
+    }
+    if (initialValues.contactNumber) {
+      setContactNumber(initialValues.contactNumber);
+      applied = true;
+    }
+
+    if (applied) {
+      initialApplied.current = true;
+    }
   }, [initialValues]);
 
   return (

@@ -4,27 +4,31 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+import { useAuth } from "@/components/auth-context";
 import { Tables } from "@/types/supabase";
 import { useCartStore } from "@/store/cart";
 
 export function AddToCartButton({ product }: { product: Tables<"products"> }) {
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
+  const [isAdded, setIsAdded] = useState(false);
+  const stock = product.stock ?? 0;
 
-  const handleAddToCart = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+  const handleAddToCart = () => {
     if (!user) {
       router.push("/login");
       return;
     }
 
-    if (product.stock === 0) return;
+    if (stock === 0) return;
 
     addItem(product, quantity);
+    setIsAdded(true);
+    setTimeout(() => {
+      setIsAdded(false);
+    }, 1500);
   };
 
   const handleDecrease = () => {
@@ -32,10 +36,10 @@ export function AddToCartButton({ product }: { product: Tables<"products"> }) {
   };
 
   const handleIncrease = () => {
-    setQuantity((q) => Math.min(product.stock, q + 1));
+    setQuantity((q) => Math.min(stock, q + 1));
   };
 
-  const isOutOfStock = product.stock === 0;
+  const isOutOfStock = stock === 0;
 
   return (
     <div className="flex gap-4 items-center">
@@ -48,7 +52,7 @@ export function AddToCartButton({ product }: { product: Tables<"products"> }) {
             size="icon"
             onClick={handleDecrease}
             disabled={quantity <= 1}
-            className="h-full px-3 hover:bg-muted border-none rounded-none text-muted-foreground hover:text-foreground"
+            className="h-full px-3 hover:bg-muted border-none rounded-none text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed"
             aria-label="Decrease quantity"
           >
             <Minus className="size-4" />
@@ -61,8 +65,8 @@ export function AddToCartButton({ product }: { product: Tables<"products"> }) {
             variant="ghost"
             size="icon"
             onClick={handleIncrease}
-            disabled={quantity >= product.stock}
-            className="h-full px-3 hover:bg-muted border-none rounded-none text-muted-foreground hover:text-foreground"
+            disabled={quantity >= stock}
+            className="h-full px-3 hover:bg-muted border-none rounded-none text-muted-foreground hover:text-foreground cursor-pointer disabled:cursor-not-allowed"
             aria-label="Increase quantity"
           >
             <Plus className="size-4" />
@@ -74,11 +78,11 @@ export function AddToCartButton({ product }: { product: Tables<"products"> }) {
       <Button
         size="lg"
         disabled={isOutOfStock}
-        className="flex-1 h-14 text-base font-semibold rounded-md flex items-center justify-center gap-2"
+        className="flex-1 h-14 text-base font-semibold rounded-md flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
         onClick={handleAddToCart}
       >
         <ShoppingCart className="size-5" />
-        {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+        {isOutOfStock ? "Out of Stock" : isAdded ? "Added to Cart! ✓" : "Add to Cart"}
       </Button>
     </div>
   );

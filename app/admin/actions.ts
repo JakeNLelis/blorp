@@ -47,8 +47,8 @@ export async function createProduct(
   }
 
   const price = parseFloat(priceRaw);
-  if (isNaN(price) || price < 0) {
-    return { error: "Price must be a positive number." };
+  if (isNaN(price) || price <= 0) {
+    return { error: "Price must be a positive number greater than zero." };
   }
 
   let salePrice: number | null = null;
@@ -197,8 +197,8 @@ export async function updateProduct(
   }
 
   const price = parseFloat(priceRaw);
-  if (isNaN(price) || price < 0) {
-    return { error: "Price must be a positive number." };
+  if (isNaN(price) || price <= 0) {
+    return { error: "Price must be a positive number greater than zero." };
   }
 
   let salePrice: number | null = null;
@@ -214,7 +214,7 @@ export async function updateProduct(
     }
   }
 
-  const stock = stockRaw ? parseInt(stockRaw, 10) : 0;
+  const stock = stockRaw ? parseInt(stockRaw, 10) : 50;
   if (isNaN(stock) || stock < 0) {
     return { error: "Stock must be a non-negative integer." };
   }
