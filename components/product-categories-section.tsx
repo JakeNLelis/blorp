@@ -1,68 +1,83 @@
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 
-const categories = [
-  {
-    title: "Handbags",
-    image:
-      "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=1600&auto=format&fit=crop",
-    link: "/products?category=handbags",
-  },
-  {
-    title: "Watches",
-    image:
-      "https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=1600&auto=format&fit=crop",
-    link: "/products?category=watches",
-  },
-  {
-    title: "Jewelry",
-    image:
-      "https://images.unsplash.com/photo-1599643478524-fb524419f4a9?q=80&w=1600&auto=format&fit=crop",
-    link: "/products?category=jewelry",
-  },
-  {
-    title: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-1584030373081-f37b7bb4fa8e?q=80&w=1600&auto=format&fit=crop",
-    link: "/products?category=accessories",
-  },
-];
+type CategoryItem = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  image: string;
+};
 
-export function ProductCategoriesSection() {
+type ProductCategoriesSectionProps = {
+  categories: CategoryItem[];
+};
+
+export function ProductCategoriesSection({
+  categories,
+}: ProductCategoriesSectionProps) {
   return (
-    <section className="px-6 py-12 lg:px-12 lg:py-24">
-      <div className="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
-        <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-          Shop by Category
-        </h2>
-        <Button variant="outline" className="rounded-full" asChild>
-          <Link href="/products">View All Categories</Link>
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((category) => (
-          <Link
-            key={category.title}
-            href={category.link}
-            className="group relative flex aspect-square flex-col justify-end overflow-hidden rounded-xl bg-muted p-6"
-          >
-            <Image
-              alt={category.title}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              src={category.image}
-              fill
-              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="relative z-10">
-              <h3 className="text-xl font-medium text-white">
-                {category.title}
-              </h3>
-            </div>
-          </Link>
-        ))}
+    <section className="py-32 flex justify-around font-sans">
+      <div className="container">
+        <div className="flex flex-col gap-10">
+          <h2 className="text-center text-4xl leading-snug font-semibold font-heading">
+            Product Categories
+          </h2>
+          <div className="gap grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-3">
+            {categories.map((category) => (
+              <div key={category.id} className="transition-all duration-300">
+                <div
+                  data-slot="card"
+                  data-size="default"
+                  className="group/card flex flex-col gap-6 overflow-hidden text-sm ring-1 ring-border rounded-xl bg-card/20 p-4 shadow-none hover:border-primary/20 hover:ring-primary/20 transition-all duration-300"
+                >
+                  <div data-slot="card-content" className="p-0">
+                    <Link
+                      href={`/products?category=${category.slug}`}
+                      className="flex flex-col gap-4"
+                    >
+                      <div
+                        data-radix-aspect-ratio-wrapper=""
+                        style={{
+                          position: "relative",
+                          width: "100%",
+                          paddingBottom: "73.3527%",
+                        }}
+                      >
+                        <div
+                          data-slot="aspect-ratio"
+                          className="overflow-hidden rounded-lg border bg-muted"
+                          style={{ position: "absolute", inset: 0 }}
+                        >
+                          <Image
+                            alt={category.title}
+                            src={category.image}
+                            fill
+                            className="origin-center object-cover object-center transition-transform duration-500 hover:scale-110"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5 text-center">
+                        <div
+                          data-slot="card-title"
+                          className="text-lg leading-tight font-semibold sm:text-xl font-heading text-foreground group-hover/card:text-primary transition-colors"
+                        >
+                          {category.title}
+                        </div>
+                        <div
+                          data-slot="card-description"
+                          className="text-muted-foreground text-xs font-medium leading-relaxed max-w-70 mx-auto"
+                        >
+                          {category.description}
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -23,20 +23,29 @@ export const useCartStore = create<CartState>()(
       items: [],
       addItem: (product, quantity = 1) => {
         const sanitizedQuantity = Math.max(1, Math.floor(Number.isFinite(quantity) ? quantity : 1));
+        const limitStock = product.stock ?? 0;
         set((state) => {
           const existingItem = state.items.find((item) => item.product.id === product.id);
 
           if (existingItem) {
+            const finalQty = Math.min(limitStock, existingItem.quantity + sanitizedQuantity);
+            if (finalQty <= 0) {
+              return state;
+            }
             return {
               items: state.items.map((item) =>
                 item.product.id === product.id
-                  ? { ...item, quantity: item.quantity + sanitizedQuantity }
+                  ? { ...item, quantity: finalQty }
                   : item
               ),
             };
           }
 
-          return { items: [...state.items, { product, quantity: sanitizedQuantity }] };
+          const finalQty = Math.min(limitStock, sanitizedQuantity);
+          if (finalQty <= 0) {
+            return state;
+          }
+          return { items: [...state.items, { product, quantity: finalQty }] };
         });
       },
       removeItem: (productId) => {
@@ -46,21 +55,39 @@ export const useCartStore = create<CartState>()(
       },
       updateQuantity: (productId, quantity) => {
         const sanitizedQuantity = Math.max(1, Math.floor(Number.isFinite(quantity) ? quantity : 1));
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.product.id === productId ? { ...item, quantity: sanitizedQuantity } : item
-          ),
-        }));
+        set((state) => {
+          const itemToUpdate = state.items.find((item) => item.product.id === productId);
+          if (!itemToUpdate) return state;
+
+          const limitStock = itemToUpdate.product.stock ?? 0;
+          const finalQty = Math.min(limitStock, sanitizedQuantity);
+
+          if (finalQty <= 0) {
+            return {
+              items: state.items.filter((item) => item.product.id !== productId),
+            };
+          }
+
+          return {
+            items: state.items.map((item) =>
+              item.product.id === productId 
+                ? { ...item, quantity: finalQty } 
+                : item
+            ),
+          };
+        });
       },
       clearCart: () => set({ items: [] }),
       totalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
       totalPrice: () => {
-        return get().items.reduce(
-          (total, item) => total + item.product.price * item.quantity,
-          0
-        );
+        return get().items.reduce((total, item) => {
+          const price = item.product.sale_price !== null && item.product.sale_price !== undefined
+            ? Number(item.product.sale_price)
+            : Number(item.product.price);
+          return total + price * item.quantity;
+        }, 0);
       },
     }),
     {
