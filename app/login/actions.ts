@@ -84,9 +84,31 @@ export async function signInWithGoogle() {
   const hdrs = await headers();
   const originHeader = hdrs.get("origin");
   const hostHeader = hdrs.get("host");
-  const protocol = hostHeader?.includes("localhost") || hostHeader?.includes("127.0.0.1") ? "http" : "https";
-  const safeOrigin = originHeader || (hostHeader ? `${protocol}://${hostHeader}` : process.env.SITE_URL || "http://localhost:3000");
-  const redirectTo = `${safeOrigin}/auth/callback`;
+
+  // Determine the site origin reliably across local dev and production.
+  // 1. Explicit env var (set by the developer in Vercel dashboard / .env)
+  // 2. VERCEL_URL (auto-injected by Vercel — does NOT include protocol)
+  // 3. origin / host request headers (works in local dev)
+  // 4. Fallback to localhost for pure local dev
+  let siteOrigin: string;
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    siteOrigin = process.env.NEXT_PUBLIC_SITE_URL;
+  } else if (process.env.VERCEL_URL) {
+    siteOrigin = `https://${process.env.VERCEL_URL}`;
+  } else if (originHeader) {
+    siteOrigin = originHeader;
+  } else if (hostHeader) {
+    const protocol =
+      hostHeader.includes("localhost") || hostHeader.includes("127.0.0.1")
+        ? "http"
+        : "https";
+    siteOrigin = `${protocol}://${hostHeader}`;
+  } else {
+    siteOrigin = "http://localhost:3000";
+  }
+
+  // Strip any trailing slash to avoid double-slash in the callback URL
+  const redirectTo = `${siteOrigin.replace(/\/+$/, "")}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
